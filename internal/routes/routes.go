@@ -30,8 +30,8 @@ func RegisterRoute(r *gin.Engine, authService auth.TokenService, cacheService ca
 	middleware.InitAuthMiddlware(authService, cacheService)
 	
 	protected.Use(
-		middleware.AuthMiddleware(),
-		middleware.ApiKeyMiddleware(),
+		//middleware.AuthMiddleware(),
+		//middleware.ApiKeyMiddleware(),
 		middleware.RateLimiterMiddleware(),
 	)
 

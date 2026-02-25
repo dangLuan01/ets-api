@@ -18,3 +18,11 @@ type UserRepository interface {
 	UpdatePassword(uuid string, password string) error
 	UpdateCountUpload(uuid string) error
 }
+
+type ExamRepository interface {
+	FindExamById(examId string) (models.Exam, error)
+	FindExamQuestionMappingById(examId string) ([]models.ExamQuestionMapping, error)
+	FindQuesionByIds(singleIDs []int) ([]models.Question, error)
+	FindGroupQuestionByIds(groupIDs []int) ([]models.QuestionGroup, error)
+	FindSubQuesionByGroupIds(groupIDs []int) ([]models.Question, error)
+}

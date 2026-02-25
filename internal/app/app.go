@@ -79,6 +79,7 @@ func NewApplication(cfg *config.Config) (*Application, error) {
 
 	modules := []Module{
 		NewUserModule(ctx),
+		NewExamModule(ctx),
 		// NewAuthModule(ctx, tokenService, cacheRedisService, mailService, rabbitmqService),
 		// NewStreamingModule(ctx, cacheRedisService, storeS3Service),
 		// NewVideoModule(ctx, storeS3Service),

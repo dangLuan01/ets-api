@@ -62,15 +62,15 @@ func ResponseError(ctx *gin.Context, err error) {
 	})
 }
 
-func ResponseSuccess(ctx *gin.Context, status int, message string, data ...any) {
+func ResponseSuccess(ctx *gin.Context, status int, message string, data any) {
 	ctx.JSON(status, gin.H{
-		"status":"SUCCESS",
+		"status": "SUCCESS",
 		"message": message,
 		"data": data,
 	})
 }
 
-func ResponseStatus(ctx *gin.Context, status int)  {
+func ResponseStatus(ctx *gin.Context, status int)  {	
 	ctx.Status(status)
 }
 

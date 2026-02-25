@@ -25,3 +25,7 @@ type AuthService interface {
 	Register(ctx *gin.Context, input v1dto.RegisterInput) error
 	RegisterOTP(ctx *gin.Context, code string) error
 }
+
+type ExamService interface {
+	FindExamById(id string) (models.Exam, error)
+}

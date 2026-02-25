@@ -16,15 +16,15 @@ func NewUserRoutes(handler *v1handler.UserHandler) *UserRoutes {
 }
 
 func (ur *UserRoutes) Register(r *gin.RouterGroup) {
-	users := r.Group("/users")
-	{
-		users.GET("", ur.handler.GetAllUser)
-		users.POST("/info", ur.handler.GetUserByUUID)
-		users.POST("", ur.handler.CreateUser)
-		users.PUT("/:uuid", ur.handler.UpdateUser)
-		users.DELETE("/:uuid", ur.handler.DeleteUser)
-		users.POST("/check-status", ur.handler.CheckStatus)
-		users.PUT("/change-password", ur.handler.ChangePassword)
-		users.PUT("/update-count-upload/:uuid", ur.handler.UpdateCountUpload)
-	}
+	// users := r.Group("/users")
+	// {
+	// 	users.GET("", ur.handler.GetAllUser)
+	// 	users.POST("/info", ur.handler.GetUserByUUID)
+	// 	users.POST("", ur.handler.CreateUser)
+	// 	users.PUT("/:uuid", ur.handler.UpdateUser)
+	// 	users.DELETE("/:uuid", ur.handler.DeleteUser)
+	// 	users.POST("/check-status", ur.handler.CheckStatus)
+	// 	users.PUT("/change-password", ur.handler.ChangePassword)
+	// 	users.PUT("/update-count-upload/:uuid", ur.handler.UpdateCountUpload)
+	// }
 }

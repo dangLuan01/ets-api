@@ -23,6 +23,7 @@ func NewUserModule(ctx *ModuleContext) *UserModule {
 		routes: userRoutes,
 	}
 }
+
 func (m *UserModule) Routes() routes.Route {
 	return m.routes
 }

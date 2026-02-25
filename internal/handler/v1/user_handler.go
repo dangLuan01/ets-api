@@ -33,6 +33,7 @@ func NewUserHandler(service v1service.UserService) *UserHandler {
 		service: service,
 	}
 }
+
 func (uh *UserHandler) GetAllUser(ctx *gin.Context)  {
 	users, err := uh.service.GetAllUser()
 	if err != nil {
@@ -129,7 +130,7 @@ func (uh *UserHandler) CheckStatus(ctx *gin.Context) {
 		return
 	}
 
-	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully!")
+	utils.ResponseStatus(ctx, http.StatusOK)
 }
 
 func (uh *UserHandler) ChangePassword(ctx *gin.Context) {

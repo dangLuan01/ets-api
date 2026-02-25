@@ -55,7 +55,7 @@ func (ah *AuthHandler) Logout(ctx *gin.Context) {
 		return
 	}
 
-	utils.ResponseSuccess(ctx, http.StatusOK, "Logout successfully.")
+	utils.ResponseStatus(ctx, http.StatusOK)
 
 }
 
@@ -93,7 +93,7 @@ func (ah *AuthHandler) Register(ctx *gin.Context) {
 		return
 	}
 
-	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully!")
+	utils.ResponseStatus(ctx, http.StatusOK)
 }
 
 func (ah *AuthHandler) RegisterOTP(ctx *gin.Context) {
@@ -108,5 +108,5 @@ func (ah *AuthHandler) RegisterOTP(ctx *gin.Context) {
 		return
 	}
 
-	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully!")
+	utils.ResponseStatus(ctx, http.StatusOK)
 }
