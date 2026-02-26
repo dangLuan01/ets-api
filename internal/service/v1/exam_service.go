@@ -1,6 +1,7 @@
 package v1service
 
 import (
+	"encoding/json"
 	"sort"
 
 	"github.com/dangLuan01/ets-api/internal/models"
@@ -41,8 +42,23 @@ func (rs *examService) FindExamById(examId string) (models.Exam, error) {
 		}
 	}
 
-	questionMap := make(map[int]models.Question)
-	groupMap 	:= make(map[int]*models.QuestionGroup)
+	directionMap 	:= make(map[int]models.Direction)
+	questionMap 	:= make(map[int]models.Question)
+	groupMap 		:= make(map[int]*models.QuestionGroup)
+
+	directions, err := rs.repo.FindDirectionByExamId(examId)
+	if err == nil {
+		for i := range directions {
+			d := &directions[i]
+			if len(d.ExmapleRaw) > 0 {
+				var ex models.ExampleData
+				if err := json.Unmarshal(d.ExmapleRaw, &ex); err == nil {
+					d.Exmaple = &ex
+				}
+			}
+			directionMap[d.Part] = *d
+		}
+	}
 
 	if len(singleIDs) > 0 {
 
@@ -62,9 +78,7 @@ func (rs *examService) FindExamById(examId string) (models.Exam, error) {
 				"C": q.OptionC,
 				"D": q.OptionD,
 			}
-			
 			q.Options = opts
-
 			questionMap[q.Id] = *q
 		}
 	}
@@ -136,12 +150,17 @@ func (rs *examService) FindExamById(examId string) (models.Exam, error) {
 	for part := range sectionsByPart {
 		parts = append(parts, part)
 	}
+
+	if _, ok := directionMap[0]; ok {
+		parts = append(parts, 0)
+	}
 	sort.Ints(parts)
 	
 	var examParts []models.ExamPart
 	for _, part := range parts {
 		examParts = append(examParts, models.ExamPart{
 			Part: part,
+			Direction: directionMap[part],
 			Items: sectionsByPart[part],
 		})
 	}

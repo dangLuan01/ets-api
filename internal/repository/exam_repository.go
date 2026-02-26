@@ -9,8 +9,9 @@ import (
 const (
 	TABLE_EXAM 					= "exams"
 	TABLE_EXAM_QUESTION_MAPPING = "exam_question_mappings"
-	TABLE_QUESTION_GROUPS 		= "question_groups"
+	TABLE_QUESTION_GROUP		= "question_groups"
 	TABLE_QUESTIONS 			= "questions"
+	TABLE_PART_DIRECTION		= "part_directions"
 )
 
 type SqlExamRepository struct {
@@ -112,7 +113,7 @@ func (rt *SqlExamRepository) FindQuesionByIds(singleIDs []int) ([]models.Questio
 func (rt *SqlExamRepository) FindGroupQuestionByIds(groupIDs []int) ([]models.QuestionGroup, error) {
 	var groupQuestions	[]models.QuestionGroup			
 
-	err := rt.db.From(TABLE_QUESTION_GROUPS).
+	err := rt.db.From(TABLE_QUESTION_GROUP).
 		Select(
 			goqu.C("id"),
 			goqu.C("part"),
@@ -164,4 +165,28 @@ func (rt *SqlExamRepository) FindSubQuesionByGroupIds(groupIDs []int) ([]models.
 	}
 
 	return subQuestions, nil
+}
+
+func (rt *SqlExamRepository) FindDirectionByExamId(examId string) ([]models.Direction, error) {
+	var partDirections []models.Direction
+
+	err := rt.db.From(TABLE_PART_DIRECTION).
+		Select(
+			
+			goqu.C("exam_id"),
+			goqu.C("direction_text"),
+			goqu.C("part"),
+			goqu.C("audio_start_ms"),
+			goqu.C("audio_end_ms"),
+			goqu.C("example_data"),
+		).
+		Where(goqu.C("exam_id").Eq(examId)).
+		Order(goqu.C("part").Asc()).
+		ScanStructs(&partDirections)
+	
+	if err != nil {
+		return nil, err
+	}
+
+	return partDirections, nil
 }
