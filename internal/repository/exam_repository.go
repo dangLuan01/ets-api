@@ -12,6 +12,8 @@ const (
 	TABLE_QUESTION_GROUP		= "question_groups"
 	TABLE_QUESTIONS 			= "questions"
 	TABLE_PART_DIRECTION		= "part_directions"
+	TABLE_SKILLS				= "skills"
+	TABLE_PART_MASTER			= "part_masters"
 )
 
 type SqlExamRepository struct {
@@ -30,10 +32,12 @@ func (rt *SqlExamRepository) FindExamById(examId string) (models.Exam, error) {
 	found, err := rt.db.From(TABLE_EXAM).
 	Select(
 		goqu.C("id"),
+		goqu.C("cert_id"),
 		goqu.C("title"),
 		goqu.C("year"),
 		goqu.C("category"),
 		goqu.C("total_time"),
+		goqu.C("total_question"),
 		goqu.C("description"),
 		goqu.C("thumbnail"),
 		goqu.C("audio_full_url"),
@@ -47,6 +51,7 @@ func (rt *SqlExamRepository) FindExamById(examId string) (models.Exam, error) {
 	}
 
 	if err != nil {
+		
 		return models.Exam{}, err
 	}
 
@@ -62,16 +67,16 @@ func (rt *SqlExamRepository) FindExamQuestionMappingById(examId string) ([]model
 			goqu.C("entity_type"),
 			goqu.C("entity_id"),
 			goqu.C("order_index"),
-			goqu.C("part"),
+			goqu.C("part_id"),
 		).
 		Where(goqu.C("exam_id").Eq(examId)).
 		Order(
-			goqu.C("part").Desc(),
 			goqu.C("order_index").Asc(),
 		).
 		ScanStructs(&sections)
 
 	if err != nil {
+
 		return nil, err
 	}
 
@@ -104,6 +109,7 @@ func (rt *SqlExamRepository) FindQuesionByIds(singleIDs []int) ([]models.Questio
 		ScanStructs(&questions)
 	
 	if err != nil {
+
 		return nil, err
 	}
 
@@ -116,7 +122,7 @@ func (rt *SqlExamRepository) FindGroupQuestionByIds(groupIDs []int) ([]models.Qu
 	err := rt.db.From(TABLE_QUESTION_GROUP).
 		Select(
 			goqu.C("id"),
-			goqu.C("part"),
+			goqu.C("part_id"),
 			goqu.C("passage_text"),
 			goqu.C("image_url"),
 			goqu.C("audio_start_ms"),
@@ -128,6 +134,7 @@ func (rt *SqlExamRepository) FindGroupQuestionByIds(groupIDs []int) ([]models.Qu
 		ScanStructs(&groupQuestions)
 	
 	if err != nil {
+
 		return nil, err
 	}
 
@@ -161,6 +168,7 @@ func (rt *SqlExamRepository) FindSubQuesionByGroupIds(groupIDs []int) ([]models.
 		ScanStructs(&subQuestions)
 	
 	if err != nil {
+
 		return nil, err
 	}
 
@@ -172,21 +180,70 @@ func (rt *SqlExamRepository) FindDirectionByExamId(examId string) ([]models.Dire
 
 	err := rt.db.From(TABLE_PART_DIRECTION).
 		Select(
-			
+			goqu.C("id"),
 			goqu.C("exam_id"),
 			goqu.C("direction_text"),
-			goqu.C("part"),
+			goqu.C("part_id"),
 			goqu.C("audio_start_ms"),
 			goqu.C("audio_end_ms"),
 			goqu.C("example_data"),
 		).
 		Where(goqu.C("exam_id").Eq(examId)).
-		Order(goqu.C("part").Asc()).
+		Order(goqu.C("part_id").Asc()).
 		ScanStructs(&partDirections)
 	
 	if err != nil {
+		
 		return nil, err
 	}
 
 	return partDirections, nil
+}
+
+func (rt *SqlExamRepository) FindSkillsByCertId(certId int) ([]models.SkillMaster, error) {
+	var skillsMaster []models.SkillMaster
+	err := rt.db.From(TABLE_SKILLS).
+		Select(
+			goqu.C("id"),
+			goqu.C("cert_id"),
+			goqu.C("code"),
+			goqu.C("name"),
+			goqu.C("order_index"),
+		).
+		Where(goqu.C("cert_id").Eq(certId)).
+		Order(goqu.C("order_index").Asc()).
+		ScanStructs(&skillsMaster)
+	
+	if err != nil {
+
+		return nil, err
+	}
+
+	return skillsMaster, nil
+}
+
+func (rt *SqlExamRepository) FindPartsByCertId(certId int) ([]models.PartMaster, error) {
+    var partsMaster []models.PartMaster
+    
+    err := rt.db.From(goqu.T(TABLE_PART_MASTER).As("pm")).
+        Join(
+            goqu.T("skills").As("s"),
+            goqu.On(goqu.I("pm.skill_id").Eq(goqu.I("s.id"))), // Điều kiện JOIN
+        ).
+        Select(
+            goqu.I("pm.id"),
+            goqu.I("pm.skill_id"),
+            goqu.I("pm.part_number"),
+            goqu.I("pm.name"),
+        ).
+        Where(goqu.I("s.cert_id").Eq(certId)).
+        Order(goqu.I("pm.part_number").Asc()).
+        ScanStructs(&partsMaster)
+    
+    if err != nil {
+
+        return nil, err
+    }
+
+    return partsMaster, nil
 }

@@ -42,21 +42,22 @@ func (rs *examService) FindExamById(examId string) (models.Exam, error) {
 		}
 	}
 
-	directionMap 	:= make(map[int]models.Direction)
+	
 	questionMap 	:= make(map[int]models.Question)
 	groupMap 		:= make(map[int]*models.QuestionGroup)
 
+	directionMap 	:= make(map[int]models.Direction)
 	directions, err := rs.repo.FindDirectionByExamId(examId)
 	if err == nil {
 		for i := range directions {
 			d := &directions[i]
-			if len(d.ExmapleRaw) > 0 {
+			if len(d.ExampleRaw) > 0 {
 				var ex models.ExampleData
-				if err := json.Unmarshal(d.ExmapleRaw, &ex); err == nil {
-					d.Exmaple = &ex
+				if err := json.Unmarshal(d.ExampleRaw, &ex); err == nil {
+					d.Example = &ex
 				}
 			}
-			directionMap[d.Part] = *d
+			directionMap[d.PartId] = *d
 		}
 	}
 
@@ -131,8 +132,8 @@ func (rs *examService) FindExamById(examId string) (models.Exam, error) {
 
 		case "GROUP":
 			if g, ok := groupMap[s.EntityId]; ok {
-				for i := range g.SubQuestions {
-					g.SubQuestions[i].DisplayNumber = s.OrderIndex + i
+				for j := range g.SubQuestions {
+					g.SubQuestions[j].DisplayNumber = s.OrderIndex + j
 				}
 
 				s.GroupData = g
@@ -140,32 +141,120 @@ func (rs *examService) FindExamById(examId string) (models.Exam, error) {
 		}
 	}
 
+	skillsMater, err := rs.repo.FindSkillsByCertId(exam.CertificateId)
+	if err != nil {
+		return models.Exam{}, err
+	}
+
+	partsMaster, err := rs.repo.FindPartsByCertId(exam.CertificateId)
+	if err != nil {
+		return models.Exam{}, err
+	}
+
+	skillMasterMap := make(map[int]models.SkillMaster)
+	for _, sm := range skillsMater {
+		skillMasterMap[sm.Id] = sm
+	}
+
+	partMasterMap := make(map[int]models.PartMaster)
+    for _, pm := range partsMaster {
+        partMasterMap[pm.Id] = pm
+    }
+
 	sectionsByPart := make(map[int][]models.ExamQuestionMapping)
 
 	for _, s := range sections {
-		sectionsByPart[s.Part] = append(sectionsByPart[s.Part], s)
+		sectionsByPart[s.PartId] = append(sectionsByPart[s.PartId], s)
 	}
 
-	parts := make([]int, 0, len(sectionsByPart))
-	for part := range sectionsByPart {
-		parts = append(parts, part)
+	partIDSet := make(map[int]bool)
+	for partID := range sectionsByPart {
+		partIDSet[partID] = true
+	}
+	for partID := range directionMap {
+		partIDSet[partID] = true
 	}
 
-	if _, ok := directionMap[0]; ok {
-		parts = append(parts, 0)
+	partsBySkill := make(map[int][]models.ExamPart)
+
+	for partID := range partIDSet {
+		pm, ok := partMasterMap[partID]
+		if !ok {
+			continue
+		}
+
+		var dir *models.Direction
+		if d, exist := directionMap[partID]; exist {
+			dCopy := d
+			dir = &dCopy
+		}
+
+		items := sectionsByPart[partID]
+        if items == nil {
+            items = []models.ExamQuestionMapping{}
+        }
+
+		examPart := models.ExamPart{
+			PartId: partID,
+			PartNumber: pm.PartNumber,
+			PartName: pm.Name,
+			Direction: dir,
+			Items: items,
+		}
+
+		partsBySkill[pm.SkillId] = append(partsBySkill[pm.SkillId], examPart)
 	}
-	sort.Ints(parts)
+
+	var examSkills []models.ExamSkill
+
+	for skillID, examParts := range partsBySkill {
+        sm, ok := skillMasterMap[skillID]
+        if !ok { continue }
+
+        // Sắp xếp các Part bên trong Skill theo PartNumber (0, 1, 2, 3...)
+        sort.Slice(examParts, func(i, j int) bool {
+            return examParts[i].PartNumber < examParts[j].PartNumber
+        })
+
+        examSkills = append(examSkills, models.ExamSkill{
+            SkillId:   skillID,
+            SkillCode: sm.Code,
+            SkillName: sm.Name,
+            Parts:     examParts,
+        })
+    }
+
+	sort.Slice(examSkills, func(i, j int) bool {
+        return skillMasterMap[examSkills[i].SkillId].OrderIndex < skillMasterMap[examSkills[j].SkillId].OrderIndex
+    })
+
+	exam.Skills = examSkills
+	// sectionsByPart := make(map[int][]models.ExamQuestionMapping)
+
+	// for _, s := range sections {
+	// 	sectionsByPart[s.PartId] = append(sectionsByPart[s.PartId], s)
+	// }
+
+	// parts := make([]int, 0, len(sectionsByPart))
+	// for part := range sectionsByPart {
+	// 	parts = append(parts, part)
+	// }
+
+	// if _, ok := directionMap[0]; ok {
+	// 	parts = append(parts, 0)
+	// }
+	// sort.Ints(parts)
 	
-	var examParts []models.ExamPart
-	for _, part := range parts {
-		examParts = append(examParts, models.ExamPart{
-			Part: part,
-			Direction: directionMap[part],
-			Items: sectionsByPart[part],
-		})
-	}
+	// var examParts []models.ExamPart
+	// for _, part := range parts {
+	// 	examParts = append(examParts, models.ExamPart{
+	// 		PartId: part,
+	// 		Direction: directionMap[part],
+	// 		Items: sectionsByPart[part],
+	// 	})
+	// }
 	
-	exam.Sections = examParts
+	// exam.Sections = examParts
 
 	return exam, nil
 }

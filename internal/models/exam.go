@@ -1,33 +1,70 @@
 package models
 
+// --- TẦNG DANH MỤC (MASTER DATA) ---
+
+type Certificate struct {
+	Id 				int 	`json:"-" db:"id"`
+	Code 			string 	`json:"code" db:"code"`
+	Name 			string 	`json:"name" db:"name"`
+}
+
+type SkillMaster struct {
+	Id 				int 	`json:"-" db:"id"`
+	CertId 			int 	`json:"cert_id" db:"cert_id"`
+	Code 			string 	`json:"code" db:"code"`
+	Name 			string 	`json:"name" db:"name"`
+	OrderIndex      int     `json:"order_index" db:"order_index"`
+}
+
+type PartMaster struct {
+	Id 				int 	`json:"-" db:"id"`
+	SkillId 		int 	`json:"skill_id" db:"skill_id"`
+	PartNumber 		int 	`json:"part_number" db:"part_number"`
+	Name 			string 	`json:"name" db:"name"`
+}
+
+// --- TẦNG RESPONSE (API JSON) ---
+
 type Exam struct {
 	Id 				int 					`json:"exam_id" db:"id"`
+	CertificateId	int						`json:"-" db:"cert_id"`
 	Title 			string 					`json:"title" db:"title"`
 	Year 			int 					`json:"year" db:"year"`
 	Category 		*string 				`json:"category" db:"category"`
 	TotalTime 		int 					`json:"total_time" db:"total_time"`
+	TotalQuestion	int						`json:"total_question" db:"total_question"`
 	Description 	*string 				`json:"description" db:"description"`
 	Thumbnail 		*string 				`json:"thumbnail" db:"thumbnail"`
 	AudioFullUrl 	*string					`json:"audio_full_url" db:"audio_full_url"`
 	Status 			int 					`json:"status" db:"status"`
 	CreatedAt 		string 					`json:"created_at" db:"created_at"`
-	Sections		[]ExamPart				`json:"sections"`
+	Skills			[]ExamSkill				`json:"skills"`
+}
+
+type ExamSkill struct {
+    SkillId         int         `json:"-"`
+    SkillCode       string      `json:"skill_code"`
+    SkillName       string      `json:"skill_name"`
+    Parts           []ExamPart  `json:"parts"`
 }
 
 type ExamPart struct {
-	Part 			int						`json:"part"`
-	Direction   	Direction				`json:"direction"`
-	Items			[]ExamQuestionMapping 	`json:"items,omitempty"`
+	PartId 			int						`json:"-"`
+	PartNumber      int                     `json:"part_number"`
+    PartName        string                  `json:"part_name"`
+	Direction   	*Direction				`json:"direction,omitempty"`
+	Items			[]ExamQuestionMapping 	`json:"items"`
 }
 
 type Direction struct {
+	Id              int             		`json:"-" db:"id"`
 	Text 			string 					`json:"text" db:"direction_text"`
 	ExamId	        int						`json:"-" db:"exam_id"`
-	Part	        int						`json:"-" db:"part"`
+	PartId	        int						`json:"-" db:"part_id"`
 	AudioStart 		int 					`json:"audio_start_ms" db:"audio_start_ms"`
 	AudioEnd 		int 					`json:"audio_end_ms" db:"audio_end_ms"`
-	ExmapleRaw		[]byte					`json:"-" db:"example_data"`
-	Exmaple			*ExampleData 			`json:"exmaple,omitempty"`
+	ExampleRaw		[]byte					`json:"-" db:"example_data"`
+	Example			*ExampleData 			`json:"example,omitempty"`
 }
 
 type ExampleData struct {
@@ -39,19 +76,19 @@ type ExampleData struct {
 }
 
 type ExamQuestionMapping struct {
-	Id 				int						`json:"id" db:"id"`
+	Id 				int						`json:"-" db:"id"`
 	ExamId 			int 					`json:"exam_id" db:"exam_id"`
 	EntityType 		string 					`json:"entity_type" db:"entity_type"`
 	EntityId 		int 					`json:"entity_id" db:"entity_id"`
 	OrderIndex 		int						`json:"order_index" db:"order_index"`
-	Part 			int 					`json:"part" db:"part"`
+	PartId 			int 					`json:"part_id" db:"part_id"`
 	QuestionData 	*Question 				`json:"question_data,omitempty"`
 	GroupData 		*QuestionGroup			`json:"group_data,omitempty"`
 }
 
 type QuestionGroup struct {
-	Id 				int 					`json:"group_id" db:"id"`
-	Part 			int 					`json:"part" db:"part"`
+	Id 				int 					`json:"-" db:"id"`
+	PartId 			int 					`json:"-" db:"part_id"`
 	PassageText 	*string 				`json:"passage_text" db:"passage_text"`
 	ImageUrl 		*string 				`json:"image_url" db:"image_url"`
 	AudioStart 		*int 					`json:"audio_start_ms" db:"audio_start_ms"`
@@ -62,7 +99,7 @@ type QuestionGroup struct {
 }
 
 type Question struct {
-	Id 				int 					`json:"question_id" db:"id"`
+	Id 				int 					`json:"-" db:"id"`
 	GroupId 		*int 					`json:"-" db:"group_id"`
 	QuestionText 	*string 				`json:"question_text" db:"question_text"`
 	ImageUrl 		*string 				`json:"image_url" db:"image_url"`

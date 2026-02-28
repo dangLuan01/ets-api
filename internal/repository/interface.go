@@ -26,4 +26,6 @@ type ExamRepository interface {
 	FindGroupQuestionByIds(groupIDs []int) ([]models.QuestionGroup, error)
 	FindSubQuesionByGroupIds(groupIDs []int) ([]models.Question, error)
 	FindDirectionByExamId(examId string) ([]models.Direction, error)
+	FindSkillsByCertId(certId int) ([]models.SkillMaster, error)
+	 FindPartsByCertId(certId int) ([]models.PartMaster, error)
 }
