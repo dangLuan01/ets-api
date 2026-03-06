@@ -27,5 +27,6 @@ type AuthService interface {
 }
 
 type ExamService interface {
-	FindExamById(id string) (models.Exam, error)
+	FindExamById(examId int) (models.Exam, error)
+	CalculateScoreExam(params v1dto.QuestionAnswerInputParams) (v1dto.DetailExamScore, error)
 }

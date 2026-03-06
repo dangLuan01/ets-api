@@ -3,6 +3,7 @@ package v1handler
 import (
 	"net/http"
 
+	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	v1service "github.com/dangLuan01/ets-api/internal/service/v1"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/dangLuan01/ets-api/internal/validation"
@@ -14,7 +15,7 @@ type ExamHandler struct {
 }
 
 type GetIdExamParams struct {
-	Id string `uri:"id" binding:"required"`
+	Id int `uri:"id" binding:"required"`
 }
 
 func NewExamHandler(service v1service.ExamService) *ExamHandler {
@@ -37,4 +38,21 @@ func (rh *ExamHandler) FindExamById(ctx *gin.Context) {
 	}
 
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", exam)
+}
+
+func (rh *ExamHandler) CalculateScoreExam(ctx *gin.Context) {
+	var params v1dto.QuestionAnswerInputParams
+	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	data, err := rh.service.CalculateScoreExam(params)
+
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", v1dto.MapDetailExamScoreDTO(data))
 }

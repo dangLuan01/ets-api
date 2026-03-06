@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"sort"
 
+	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/dangLuan01/ets-api/internal/repository"
+	"github.com/dangLuan01/ets-api/internal/utils"
 )
 
 type examService struct {
@@ -18,7 +20,8 @@ func NewExamService(repo repository.ExamRepository) ExamService {
 	}
 }
 
-func (rs *examService) FindExamById(examId string) (models.Exam, error) {
+func (rs *examService) FindExamById(examId int) (models.Exam, error) {
+
 
 	exam, err := rs.repo.FindExamById(examId)
 	if err != nil {
@@ -229,32 +232,57 @@ func (rs *examService) FindExamById(examId string) (models.Exam, error) {
     })
 
 	exam.Skills = examSkills
-	// sectionsByPart := make(map[int][]models.ExamQuestionMapping)
-
-	// for _, s := range sections {
-	// 	sectionsByPart[s.PartId] = append(sectionsByPart[s.PartId], s)
-	// }
-
-	// parts := make([]int, 0, len(sectionsByPart))
-	// for part := range sectionsByPart {
-	// 	parts = append(parts, part)
-	// }
-
-	// if _, ok := directionMap[0]; ok {
-	// 	parts = append(parts, 0)
-	// }
-	// sort.Ints(parts)
-	
-	// var examParts []models.ExamPart
-	// for _, part := range parts {
-	// 	examParts = append(examParts, models.ExamPart{
-	// 		PartId: part,
-	// 		Direction: directionMap[part],
-	// 		Items: sectionsByPart[part],
-	// 	})
-	// }
-	
-	// exam.Sections = examParts
 
 	return exam, nil
+}
+
+func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams) (v1dto.DetailExamScore, error) {
+
+	questionIds 	:= make([]int, 0, len(params.Answers))
+	userAnswerMap 	:= make(map[int]string)
+
+	for _, ans := range params.Answers {
+		questionIds = append(questionIds, ans.QuestionId)
+		userAnswerMap[ans.QuestionId] = ans.SelectedAnswer
+	}
+
+	correctAnswer, err := rs.repo.GetCorrectAnswersWithSkillContext(params.ExamId, questionIds)
+	if err != nil {
+		return v1dto.DetailExamScore{}, err
+	}
+	
+	rawScores := make(map[int]int)
+	var detailsAnswers []models.UserAnswer
+
+	for _, ca := range correctAnswer {
+		isCorrect := false
+		if userAnswerMap[ca.QuestionId] == ca.CorrectAnswer {
+			isCorrect = true
+			rawScores[ca.SkillId]++
+		}
+
+		detailsAnswers = append(detailsAnswers, models.UserAnswer{
+			QuestionId: ca.QuestionId,
+			SelectedAnswer: userAnswerMap[ca.QuestionId],
+			IsCorrect: isCorrect,
+		})
+	}
+
+	exam, _ := rs.repo.FindExamById(params.ExamId)
+	conversionTable, _ := rs.repo.GetScoreConversionTable(exam.CertificateId)
+
+	finalSkillScores := make(map[int]int)
+	totalScore := 0
+
+	for skillId, correctCount := range rawScores {
+		scaled := utils.LookupScaledScore(conversionTable, skillId, correctCount)
+		finalSkillScores[skillId] = scaled
+		totalScore += scaled
+	}
+
+	return v1dto.DetailExamScore{
+		TotalScore: totalScore,
+		RawScore: rawScores,
+		ScaledScore: finalSkillScores,
+	}, nil
 }

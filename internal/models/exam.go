@@ -99,7 +99,7 @@ type QuestionGroup struct {
 }
 
 type Question struct {
-	Id 				int 					`json:"-" db:"id"`
+	Id 				int 					`json:"question_id" db:"id"`
 	GroupId 		*int 					`json:"-" db:"group_id"`
 	QuestionText 	*string 				`json:"question_text" db:"question_text"`
 	ImageUrl 		*string 				`json:"image_url" db:"image_url"`
@@ -117,4 +117,17 @@ type Question struct {
 	Difficulty 		*int 					`json:"-" db:"difficulty"`
 	Tags			*string 				`json:"-" db:"tags"`
 	Options			map[string]*string 		`json:"options"`
+}
+
+type UserAnswer struct {
+	AttemptId 		int 					`db:"attempt_id"`
+	QuestionId 		int 					`db:"question_id"`
+	SelectedAnswer 	string 					`db:"selected_answer"`
+	IsCorrect 		bool 					`db:"is_correct"`
+}
+
+type ScoreConversion struct {
+	SkillId 		int 					`db:"skill_id"`
+	RawScore 		int 					`db:"raw_score"`
+	ScaledScore 	int 					`db:"scaled_score"`
 }

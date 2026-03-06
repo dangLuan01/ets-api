@@ -3,6 +3,7 @@ package repository
 import (
 	"time"
 
+	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/google/uuid"
 )
@@ -20,12 +21,14 @@ type UserRepository interface {
 }
 
 type ExamRepository interface {
-	FindExamById(examId string) (models.Exam, error)
-	FindExamQuestionMappingById(examId string) ([]models.ExamQuestionMapping, error)
+	FindExamById(examId int) (models.Exam, error)
+	FindExamQuestionMappingById(examId int) ([]models.ExamQuestionMapping, error)
 	FindQuesionByIds(singleIDs []int) ([]models.Question, error)
 	FindGroupQuestionByIds(groupIDs []int) ([]models.QuestionGroup, error)
 	FindSubQuesionByGroupIds(groupIDs []int) ([]models.Question, error)
-	FindDirectionByExamId(examId string) ([]models.Direction, error)
+	FindDirectionByExamId(examId int) ([]models.Direction, error)
 	FindSkillsByCertId(certId int) ([]models.SkillMaster, error)
-	 FindPartsByCertId(certId int) ([]models.PartMaster, error)
+	FindPartsByCertId(certId int) ([]models.PartMaster, error)
+	GetCorrectAnswersWithSkillContext(examId int, ids []int) ([]v1dto.QuestionWithSkill, error)
+	GetScoreConversionTable(certId int) ([]models.ScoreConversion, error)
 }

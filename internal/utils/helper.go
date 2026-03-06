@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
+	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -69,4 +70,13 @@ func GetUserLogged(ctx *gin.Context) (v1dto.UserPayload, error) {
 	}
 
 	return user, nil
+}
+
+func LookupScaledScore(table []models.ScoreConversion, skillId int, raw int) int {
+    for _, row := range table {
+        if row.SkillId == skillId && row.RawScore == raw {
+            return row.ScaledScore
+        }
+    }
+    return 0
 }

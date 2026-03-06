@@ -1,6 +1,7 @@
 package repository
 
 import (
+	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/doug-martin/goqu/v9"
@@ -14,7 +15,9 @@ const (
 	TABLE_PART_DIRECTION		= "part_directions"
 	TABLE_SKILLS				= "skills"
 	TABLE_PART_MASTER			= "part_masters"
+	TABLE_SCORE_CONVERSION		= "score_conversion_tables"
 )
+
 
 type SqlExamRepository struct {
 	db *goqu.Database
@@ -26,7 +29,7 @@ func NewSqlExamRepository(DB *goqu.Database) ExamRepository {
 	}
 }
 
-func (rt *SqlExamRepository) FindExamById(examId string) (models.Exam, error) {
+func (rt *SqlExamRepository) FindExamById(examId int) (models.Exam, error) {
 	var exam models.Exam
 
 	found, err := rt.db.From(TABLE_EXAM).
@@ -58,7 +61,7 @@ func (rt *SqlExamRepository) FindExamById(examId string) (models.Exam, error) {
 	return exam, nil
 }
 
-func (rt *SqlExamRepository) FindExamQuestionMappingById(examId string) ([]models.ExamQuestionMapping, error) {
+func (rt *SqlExamRepository) FindExamQuestionMappingById(examId int) ([]models.ExamQuestionMapping, error) {
 	var sections []models.ExamQuestionMapping
 	err := rt.db.From(TABLE_EXAM_QUESTION_MAPPING).
 		Select(
@@ -175,7 +178,7 @@ func (rt *SqlExamRepository) FindSubQuesionByGroupIds(groupIDs []int) ([]models.
 	return subQuestions, nil
 }
 
-func (rt *SqlExamRepository) FindDirectionByExamId(examId string) ([]models.Direction, error) {
+func (rt *SqlExamRepository) FindDirectionByExamId(examId int) ([]models.Direction, error) {
 	var partDirections []models.Direction
 
 	err := rt.db.From(TABLE_PART_DIRECTION).
@@ -246,4 +249,52 @@ func (rt *SqlExamRepository) FindPartsByCertId(certId int) ([]models.PartMaster,
     }
 
     return partsMaster, nil
+}
+
+func (rt *SqlExamRepository) GetCorrectAnswersWithSkillContext(examId int, questionIds []int) ([]v1dto.QuestionWithSkill, error) {
+	var results []v1dto.QuestionWithSkill
+
+	err := rt.db.From(goqu.T(TABLE_QUESTIONS).As("q")).
+		Select(
+			goqu.I("q.id").As("question_id"),
+			goqu.I("q.correct_answer"),
+			goqu.I("pm.skill_id"),
+		).
+		Join(goqu.T(TABLE_EXAM_QUESTION_MAPPING).As("eqm"), goqu.On(
+			goqu.Or(
+				goqu.And(
+					goqu.I("eqm.entity_type").Eq("SINGLE"),
+					goqu.I("eqm.entity_id").Eq(goqu.I("q.id")),
+				),
+				goqu.And(
+					goqu.I("eqm.entity_type").Eq("GROUP"),
+					goqu.I("eqm.entity_id").Eq(goqu.I("q.group_id")),
+				),
+			),
+		)).
+		Join(goqu.T(TABLE_PART_MASTER).As("pm"), goqu.On(
+			goqu.I("eqm.part_id").Eq(goqu.I("pm.id")),
+		)).
+		Where(
+			goqu.I("eqm.exam_id").Eq(examId),
+			goqu.I("q.id").In(questionIds),
+		).
+		ScanStructs(&results)
+
+	return results, err
+}
+
+func (rt *SqlExamRepository) GetScoreConversionTable(certId int) ([]models.ScoreConversion, error) {
+	var results []models.ScoreConversion
+
+	err := rt.db.From(TABLE_SCORE_CONVERSION).
+		Select(
+			goqu.C("skill_id"),
+			goqu.C("raw_score"),
+			goqu.C("scaled_score"),
+		).
+		Where(goqu.C("cert_id").Eq(certId)).
+		ScanStructs(&results)
+
+	return results, err
 }
