@@ -52,8 +52,8 @@ func MapDetailExamScoreDTO(params DetailExamScore) *DetailExamScoreDTO {
 func formatSkill(skillId int) string {
 	switch skillId {
 	case 1:
-		return "Listening"
+		return "listening"
 	default :
-		return "Reading"
+		return "reading"
 	}
 }

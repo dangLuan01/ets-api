@@ -256,6 +256,10 @@ func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 
 	for _, ca := range correctAnswer {
 		isCorrect := false
+		if _, ok := rawScores[ca.SkillId]; !ok {
+        	rawScores[ca.SkillId] = 0
+    	}
+
 		if userAnswerMap[ca.QuestionId] == ca.CorrectAnswer {
 			isCorrect = true
 			rawScores[ca.SkillId]++
@@ -267,7 +271,7 @@ func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 			IsCorrect: isCorrect,
 		})
 	}
-
+	
 	exam, _ := rs.repo.FindExamById(params.ExamId)
 	conversionTable, _ := rs.repo.GetScoreConversionTable(exam.CertificateId)
 
