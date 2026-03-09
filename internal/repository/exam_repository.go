@@ -16,6 +16,8 @@ const (
 	TABLE_SKILLS				= "skills"
 	TABLE_PART_MASTER			= "part_masters"
 	TABLE_SCORE_CONVERSION		= "score_conversion_tables"
+	TABLE_USER_ATTEMPT			= "user_attempts"
+	TABLE_USER_ANSWERS			= "user_answers"
 )
 
 
@@ -297,4 +299,38 @@ func (rt *SqlExamRepository) GetScoreConversionTable(certId int) ([]models.Score
 		ScanStructs(&results)
 
 	return results, err
+}
+
+func (rt *SqlExamRepository) SaveUserAttempt(attempt models.UserAttempt) (attemptId int64, err error) {
+	resp, err := rt.db.Insert(TABLE_USER_ATTEMPT).Rows(attempt).
+		Executor().Exec()
+	if err != nil{
+    	return 0, err
+	}
+
+	attemptId, err = resp.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	
+	return attemptId, nil
+}
+
+func (rt *SqlExamRepository) SaveBulkUserAnswers(attemptId int64, answers []models.UserAnswer) error {
+	if len(answers) == 0 {
+		return nil
+	}
+
+	rows := make([]map[string]interface{}, len(answers))
+	for i, ans := range answers {
+		rows[i] = map[string]interface{}{
+			"attempt_id": attemptId,
+			"question_id": ans.QuestionId,
+			"selected_answer": ans.SelectedAnswer,
+			"is_correct": ans.IsCorrect,
+		}
+	}
+
+	_, err := rt.db.Insert(TABLE_USER_ANSWERS).Rows(rows).Executor().Exec()
+	return err
 }

@@ -3,6 +3,7 @@ package v1service
 import (
 	"encoding/json"
 	"sort"
+	"time"
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
@@ -253,7 +254,7 @@ func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 	
 	rawScores := make(map[int]int)
 	var detailsAnswers []models.UserAnswer
-
+	
 	for _, ca := range correctAnswer {
 		isCorrect := false
 		if _, ok := rawScores[ca.SkillId]; !ok {
@@ -265,9 +266,16 @@ func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 			rawScores[ca.SkillId]++
 		}
 
+		var selectedAnswer *string
+		if ans, ok := userAnswerMap[ca.QuestionId]; ok && ans != "" {
+			selectedAnswer = &ans
+		} else {
+			selectedAnswer = nil
+		}
+
 		detailsAnswers = append(detailsAnswers, models.UserAnswer{
 			QuestionId: ca.QuestionId,
-			SelectedAnswer: userAnswerMap[ca.QuestionId],
+			SelectedAnswer: selectedAnswer,
 			IsCorrect: isCorrect,
 		})
 	}
@@ -282,6 +290,25 @@ func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 		scaled := utils.LookupScaledScore(conversionTable, skillId, correctCount)
 		finalSkillScores[skillId] = scaled
 		totalScore += scaled
+	}
+
+	attemptId, err := rs.repo.SaveUserAttempt(models.UserAttempt{
+		UserId: 1,
+		ExamId: params.ExamId,
+		StartTime: time.Now().Format(time.RFC3339),
+		EndTime: time.Now().Format(time.RFC3339),
+		TotalScore: totalScore,
+		ListeningScore: finalSkillScores[1],
+		ReadingScore: finalSkillScores[2],
+	})
+
+	if err != nil {
+		return v1dto.DetailExamScore{}, err
+	}
+
+	err = rs.repo.SaveBulkUserAnswers(attemptId, detailsAnswers)
+	if err != nil {
+		return v1dto.DetailExamScore{}, err
 	}
 
 	return v1dto.DetailExamScore{

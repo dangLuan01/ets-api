@@ -31,4 +31,6 @@ type ExamRepository interface {
 	FindPartsByCertId(certId int) ([]models.PartMaster, error)
 	GetCorrectAnswersWithSkillContext(examId int, ids []int) ([]v1dto.QuestionWithSkill, error)
 	GetScoreConversionTable(certId int) ([]models.ScoreConversion, error)
+	SaveUserAttempt(models.UserAttempt) (attemptId int64, err error)
+	SaveBulkUserAnswers(attemptId int64, answers []models.UserAnswer) error
 }

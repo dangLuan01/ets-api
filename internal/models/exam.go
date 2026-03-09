@@ -122,8 +122,18 @@ type Question struct {
 type UserAnswer struct {
 	AttemptId 		int 					`db:"attempt_id"`
 	QuestionId 		int 					`db:"question_id"`
-	SelectedAnswer 	string 					`db:"selected_answer"`
+	SelectedAnswer 	*string 					`db:"selected_answer"`
 	IsCorrect 		bool 					`db:"is_correct"`
+}
+
+type UserAttempt struct {
+	UserId 			int						`db:"user_id"`
+	ExamId 			int						`db:"exam_id"`
+	StartTime 		string					`db:"start_time"`
+	EndTime			string					`db:"end_time"`
+	TotalScore 		int						`db:"total_score"`
+	ListeningScore 	int						`db:"listening_score"`
+	ReadingScore 	int						`db:"reading_score"`
 }
 
 type ScoreConversion struct {
