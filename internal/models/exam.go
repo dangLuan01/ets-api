@@ -3,27 +3,46 @@ package models
 // --- TẦNG DANH MỤC (MASTER DATA) ---
 
 type Certificate struct {
-	Id 				int 	`json:"-" db:"id"`
-	Code 			string 	`json:"code" db:"code"`
-	Name 			string 	`json:"name" db:"name"`
+	Id 				int 					`json:"-" db:"id"`
+	Code 			string 					`json:"code" db:"code"`
+	Name 			string 					`json:"name" db:"name"`
+	Description 	*string 				`json:"description" db:"description"`
+	Status 			int 					`json:"status" db:"status"`
 }
 
 type SkillMaster struct {
-	Id 				int 	`json:"-" db:"id"`
-	CertId 			int 	`json:"cert_id" db:"cert_id"`
-	Code 			string 	`json:"code" db:"code"`
-	Name 			string 	`json:"name" db:"name"`
-	OrderIndex      int     `json:"order_index" db:"order_index"`
+	Id 				int 					`json:"-" db:"id"`
+	CertId 			int 					`json:"cert_id" db:"cert_id"`
+	Code 			string 					`json:"code" db:"code"`
+	Name 			string 					`json:"name" db:"name"`
+	OrderIndex      int     				`json:"order_index" db:"order_index"`
+	Status 			int 					`json:"status" db:"status"`
 }
 
 type PartMaster struct {
-	Id 				int 	`json:"-" db:"id"`
-	SkillId 		int 	`json:"skill_id" db:"skill_id"`
-	PartNumber 		int 	`json:"part_number" db:"part_number"`
-	Name 			string 	`json:"name" db:"name"`
+	Id 				int 					`json:"-" db:"id"`
+	SkillId 		int 					`json:"skill_id" db:"skill_id"`
+	PartNumber 		int 					`json:"part_number" db:"part_number"`
+	Name 			string 					`json:"name" db:"name"`
+	Status 			int 					`json:"status" db:"status"`
 }
 
 // --- TẦNG RESPONSE (API JSON) ---
+
+type ExamModel struct {
+	Id 				int 					`json:"exam_id" db:"id"`
+	CertificateId	int						`json:"cert_id" db:"cert_id"`
+	Title 			string 					`json:"title" db:"title"`
+	Year 			int 					`json:"year" db:"year"`
+	Category 		*string 				`json:"category" db:"category"`
+	TotalTime 		int 					`json:"total_time" db:"total_time"`
+	TotalQuestion	int						`json:"total_question" db:"total_question"`
+	Description 	*string 				`json:"description" db:"description"`
+	Thumbnail 		*string 				`json:"thumbnail" db:"thumbnail"`
+	AudioFullUrl 	*string					`json:"audio_full_url" db:"audio_full_url"`
+	Status 			int 					`json:"status" db:"status"`
+	CreatedAt 		string 					`json:"created_at" db:"created_at"`
+}
 
 type Exam struct {
 	Id 				int 					`json:"exam_id" db:"id"`
@@ -42,10 +61,10 @@ type Exam struct {
 }
 
 type ExamSkill struct {
-    SkillId         int         `json:"-"`
-    SkillCode       string      `json:"skill_code"`
-    SkillName       string      `json:"skill_name"`
-    Parts           []ExamPart  `json:"parts"`
+    SkillId         int         			`json:"-"`
+    SkillCode       string      			`json:"skill_code"`
+    SkillName       string      			`json:"skill_name"`
+    Parts           []ExamPart  			`json:"parts"`
 }
 
 type ExamPart struct {

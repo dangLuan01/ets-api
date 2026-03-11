@@ -1,7 +1,7 @@
 package v1routes
 
 import (
-	v1handler "github.com/dangLuan01/ets-api/internal/handler/v1"
+	v1handler "github.com/dangLuan01/ets-api/internal/handler/v1/auth"
 	"github.com/gin-gonic/gin"
 )
 

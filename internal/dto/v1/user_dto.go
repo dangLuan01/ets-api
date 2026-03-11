@@ -17,21 +17,21 @@ type UserDTO struct {
 }
 
 type CreateUserInput struct {
-	UUID   uuid.UUID `json:"uuid"`
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=8"`
-	Status   int8   `json:"status" binding:"required,oneof=1 2"`
-	Level    int8   `json:"level" binding:"required,oneof=1 2"`
+	UUID   uuid.UUID 	`json:"uuid"`
+	Name     string 	`json:"name" binding:"required"`
+	Email    string 	`json:"email" binding:"required,email"`
+	Password string 	`json:"password" binding:"required,min=8"`
+	Status   int8   	`json:"status" binding:"required,oneof=1 2"`
+	Level    int8   	`json:"level" binding:"required,oneof=1 2"`
 }
 
 type UpdateUserInput struct {
-	UUID   uuid.UUID `json:"uuid"`
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"omitempty,min=8"`
-	Status   int8   `json:"status" binding:"omitempty,oneof=1 2"`
-	Level    int8   `json:"level" binding:"omitempty,oneof=1 2"`
+	UUID   uuid.UUID 	`json:"uuid"`
+	Name     string 	`json:"name" binding:"required"`
+	Email    string 	`json:"email" binding:"required,email"`
+	Password string 	`json:"password" binding:"omitempty,min=8"`
+	Status   int8   	`json:"status" binding:"omitempty,oneof=1 2"`
+	Level    int8   	`json:"level" binding:"omitempty,oneof=1 2"`
 }
 
 type ChangerPasswordParams struct {

@@ -301,22 +301,24 @@ func (rt *SqlExamRepository) GetScoreConversionTable(certId int) ([]models.Score
 	return results, err
 }
 
-func (rt *SqlExamRepository) SaveUserAttempt(attempt models.UserAttempt) (attemptId int64, err error) {
+func (rt *SqlExamRepository) SaveAttemptWithAnswers(attempt models.UserAttempt, answers []models.UserAnswer) error {
+	tx, err := rt.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	resp, err := rt.db.Insert(TABLE_USER_ATTEMPT).Rows(attempt).
 		Executor().Exec()
 	if err != nil{
-    	return 0, err
+    	return err
 	}
 
-	attemptId, err = resp.LastInsertId()
+	attemptId, err := resp.LastInsertId()
 	if err != nil {
-		return 0, err
+		return err
 	}
-	
-	return attemptId, nil
-}
 
-func (rt *SqlExamRepository) SaveBulkUserAnswers(attemptId int64, answers []models.UserAnswer) error {
 	if len(answers) == 0 {
 		return nil
 	}
@@ -331,6 +333,49 @@ func (rt *SqlExamRepository) SaveBulkUserAnswers(attemptId int64, answers []mode
 		}
 	}
 
-	_, err := rt.db.Insert(TABLE_USER_ANSWERS).Rows(rows).Executor().Exec()
+	_, err = tx.Insert(TABLE_USER_ANSWERS).Rows(rows).Executor().Exec()
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (rt *SqlExamRepository) FindAllExams() ([]models.ExamModel, error) {
+	var exams []models.ExamModel
+	err := rt.db.From(TABLE_EXAM).
+		ScanStructs(&exams)
+	if err != nil {
+		return nil, err
+	}
+	return exams, nil
+}
+
+func (rt *SqlExamRepository) CreateExam(exam v1dto.CreateExamInputParams) error {
+	_, err := rt.db.Insert(TABLE_EXAM).Rows(exam).Executor().Exec()
+	return err
+}
+
+func (rt *SqlExamRepository) GetExamById(examId int) (models.ExamModel, error) {
+	var exam models.ExamModel
+	found, err := rt.db.From(TABLE_EXAM).
+		Where(goqu.C("id").Eq(examId)).
+		ScanStruct(&exam)
+	if err != nil {
+		return models.ExamModel{}, err
+	}
+	if !found {
+		return models.ExamModel{}, utils.NewError(string(utils.ErrCodeNotFound), "Not found exam.")
+	}
+
+	return exam, nil
+}
+
+func (rt *SqlExamRepository) UpdateExam(examId int, params goqu.Record) error {
+	_, err := rt.db.From(TABLE_EXAM).
+		Update().Set(params).
+		Where(goqu.C("id").Eq(examId)).
+		Executor().Exec()
+		
 	return err
 }

@@ -1,7 +1,7 @@
 package v1routes
 
 import (
-	v1handler "github.com/dangLuan01/ets-api/internal/handler/v1"
+	v1handler "github.com/dangLuan01/ets-api/internal/handler/v1/exam"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,5 +20,10 @@ func (tr *ExamRoutes) Register(r *gin.RouterGroup) {
 	{
 		exam.POST("/:id/full-test", tr.handler.FindExamById)
 		exam.POST("/calculate/score", tr.handler.CalculateScoreExam)
+		//ROUTE FOR CRUD EXAM (ADMIN)
+		exam.GET("/get-all", tr.handler.GetAllExams)
+		exam.POST("/create", tr.handler.CreateExam)
+		exam.GET("/edit/:id", tr.handler.EditExam)
+		exam.PUT("/update", tr.handler.UpdateExam)
 	}
 }

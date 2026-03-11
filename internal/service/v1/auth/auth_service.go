@@ -7,7 +7,7 @@ import (
 	"time"
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
-	"github.com/dangLuan01/ets-api/internal/repository"
+	"github.com/dangLuan01/ets-api/internal/repository/user"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/dangLuan01/ets-api/pkg/auth"
 	"github.com/dangLuan01/ets-api/pkg/cache"

@@ -1,24 +1,10 @@
 package repository
 
 import (
-	"time"
-
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
-	"github.com/google/uuid"
+	"github.com/doug-martin/goqu/v9"
 )
-
-type UserRepository interface {
-	FindAll() ([]models.User, error)
-	FindBYUUID(uuid string) (models.User, error)
-	Create(user models.User) error
-	Update(uuid uuid.UUID, user models.User) error
-	Delete(uuid uuid.UUID) error
-	FindByEmail(email string) (models.User, error)
-	UpdateMember(uuid string, is_member int, expriedDate time.Time) error
-	UpdatePassword(uuid string, password string) error
-	UpdateCountUpload(uuid string) error
-}
 
 type ExamRepository interface {
 	FindExamById(examId int) (models.Exam, error)
@@ -31,6 +17,11 @@ type ExamRepository interface {
 	FindPartsByCertId(certId int) ([]models.PartMaster, error)
 	GetCorrectAnswersWithSkillContext(examId int, ids []int) ([]v1dto.QuestionWithSkill, error)
 	GetScoreConversionTable(certId int) ([]models.ScoreConversion, error)
-	SaveUserAttempt(models.UserAttempt) (attemptId int64, err error)
-	SaveBulkUserAnswers(attemptId int64, answers []models.UserAnswer) error
+	SaveAttemptWithAnswers(attempt models.UserAttempt, answers []models.UserAnswer) error
+
+	// --- REPO CHO ADMIN (CRUD EXAM) ---
+	FindAllExams() ([]models.ExamModel, error)
+	CreateExam(exam v1dto.CreateExamInputParams) error
+	GetExamById(examId int) (models.ExamModel, error)
+	UpdateExam(examId int, params goqu.Record) error
 }

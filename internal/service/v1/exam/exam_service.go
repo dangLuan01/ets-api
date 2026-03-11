@@ -7,8 +7,9 @@ import (
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
-	"github.com/dangLuan01/ets-api/internal/repository"
+	repository "github.com/dangLuan01/ets-api/internal/repository/exam"
 	"github.com/dangLuan01/ets-api/internal/utils"
+	"github.com/doug-martin/goqu/v9"
 )
 
 type examService struct {
@@ -292,7 +293,7 @@ func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 		totalScore += scaled
 	}
 
-	attemptId, err := rs.repo.SaveUserAttempt(models.UserAttempt{
+	err = rs.repo.SaveAttemptWithAnswers(models.UserAttempt{
 		UserId: 1,
 		ExamId: params.ExamId,
 		StartTime: time.Now().Format(time.RFC3339),
@@ -300,13 +301,7 @@ func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 		TotalScore: totalScore,
 		ListeningScore: finalSkillScores[1],
 		ReadingScore: finalSkillScores[2],
-	})
-
-	if err != nil {
-		return v1dto.DetailExamScore{}, err
-	}
-
-	err = rs.repo.SaveBulkUserAnswers(attemptId, detailsAnswers)
+	}, detailsAnswers)
 	if err != nil {
 		return v1dto.DetailExamScore{}, err
 	}
@@ -316,4 +311,44 @@ func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 		RawScore: rawScores,
 		ScaledScore: finalSkillScores,
 	}, nil
+}
+
+func (rs *examService) GetAllExams() ([]models.ExamModel, error) {
+	return rs.repo.FindAllExams()
+}
+
+func (rs *examService) CreateExam(params v1dto.CreateExamInputParams) error {
+	return rs.repo.CreateExam(params)
+}
+
+func (rs *examService) EditExamById(id int) (models.ExamModel, error) {
+	return rs.repo.GetExamById(id)
+}
+
+func (rs *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
+	updateData := goqu.Record{}
+	
+	if params.Description != nil {
+		updateData["description"] = params.Description
+	}
+	if params.Thumbnail != nil {
+		updateData["thumbnail"] = params.Thumbnail
+	}
+	if params.Category != nil {
+		updateData["category"] = params.Category
+	}
+	if params.AudioFullUrl != nil {
+		updateData["audio_full_url"] = params.AudioFullUrl
+	}
+	if params.Status != nil {
+		updateData["status"] = params.Status
+	}
+	
+	updateData["title"] = params.Title
+	updateData["year"] = params.Year
+	updateData["cert_id"] = params.CertificateId
+	updateData["total_question"] = params.TotalQuestion
+	updateData["total_time"] = params.TotalTime
+
+	return rs.repo.UpdateExam(params.Id, updateData)
 }

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
-	v1service "github.com/dangLuan01/ets-api/internal/service/v1"
+	v1service "github.com/dangLuan01/ets-api/internal/service/v1/user"
 	"github.com/google/uuid"
 
 	"github.com/dangLuan01/ets-api/internal/utils"

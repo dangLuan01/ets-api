@@ -1,11 +1,11 @@
 package app
 
 import (
-	v1handler "github.com/dangLuan01/ets-api/internal/handler/v1"
-	"github.com/dangLuan01/ets-api/internal/repository"
+	v1handler "github.com/dangLuan01/ets-api/internal/handler/v1/user"
+	"github.com/dangLuan01/ets-api/internal/repository/user"
 	"github.com/dangLuan01/ets-api/internal/routes"
 	v1routes "github.com/dangLuan01/ets-api/internal/routes/v1"
-	v1service "github.com/dangLuan01/ets-api/internal/service/v1"
+	v1service "github.com/dangLuan01/ets-api/internal/service/v1/user"
 )
 
 type UserModule struct {

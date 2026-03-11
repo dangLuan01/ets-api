@@ -5,7 +5,7 @@ import (
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
-	"github.com/dangLuan01/ets-api/internal/repository"
+	"github.com/dangLuan01/ets-api/internal/repository/user"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/gin-gonic/gin"
 
