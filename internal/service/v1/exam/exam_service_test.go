@@ -80,8 +80,8 @@ func (m *mockExamRepo) FindPartsByCertId(int) ([]models.PartMaster, error) {
     return nil, nil
 }
 
-func (m *mockExamRepo) FindAllExams() ([]models.ExamModel, error) {
-    return []models.ExamModel{}, nil
+func (m *mockExamRepo) FindAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64,  error) {
+    return []models.ExamModel{}, 0, nil
 }
 
 func (m *mockExamRepo) CreateExam(params v1dto.CreateExamInputParams) error {

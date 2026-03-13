@@ -20,14 +20,20 @@ func NewSqlPartMasterRepository(DB *goqu.Database) PartMasterRepository {
 	}
 }
 
-func (cr *SqlPartMasterRepository) GetAllPartMasters() ([]models.PartMaster, error) {
-	var skills []models.PartMaster
-	err := cr.db.From(TABLE_PART_MASTER).ScanStructs(&skills)
+func (cr *SqlPartMasterRepository) GetAllPartMasters(params v1dto.GetAllPartMasterParams) ([]models.PartMaster, int64, error) {
+	var partMasters []models.PartMaster
+	ds := cr.db.From(TABLE_PART_MASTER)
+
+	totalRecords, err := ds.Count()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+
+	if err := ds.Offset((uint(params.Page) - 1) * uint(params.Limit)).Limit(uint(params.Limit)).ScanStructs(&partMasters); err != nil {
+		return nil, 0, err
 	}
 	
-	return skills, nil
+	return partMasters, totalRecords, nil
 }
 
 func (cr *SqlPartMasterRepository) CreatePartMaster(params v1dto.PartMasterParamsInput) error {

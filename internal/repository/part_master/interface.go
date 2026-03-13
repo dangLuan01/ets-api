@@ -7,7 +7,7 @@ import (
 )
 
 type PartMasterRepository interface {
-	GetAllPartMasters() ([]models.PartMaster, error)
+	GetAllPartMasters(params v1dto.GetAllPartMasterParams) ([]models.PartMaster, int64, error)
 	CreatePartMaster(params v1dto.PartMasterParamsInput) error
 	FindPartMasterById(id int) (models.PartMaster, error)
 	UpdatePartMasterById(id int, params goqu.Record) error

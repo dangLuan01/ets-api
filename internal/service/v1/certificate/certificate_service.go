@@ -17,8 +17,9 @@ func NewCertificateService(repo repository.CertificateRepository) CertificateSer
 	}
 }
 
-func (cs *certificateService) GetAllCertificates() ([]models.Certificate, error) {
-	return cs.repo.GetAllCertificates()
+func (cs *certificateService) GetAllCertificates(params v1dto.GetAllCertificateParams) ([]models.Certificate, int64, error) {
+	
+	return cs.repo.GetAllCertificates(params)
 }
 
 func (cs *certificateService) CreateCertificate(params v1dto.CertificateParamsInput) error {

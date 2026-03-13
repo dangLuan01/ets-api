@@ -25,13 +25,28 @@ func NewPartMasterHandler(service v1service.PartMasterService) *PartMasterHandle
 }
 
 func (ch *PartMasterHandler) GetAllPartMasters(ctx *gin.Context) {
-	skills, err := ch.service.GetAllPartMasters()
+	var params v1dto.GetAllPartMasterParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	if params.Page <= 0 {
+		params.Page = 1
+	}
+	if params.Limit <= 0 {
+		params.Limit = 20
+	}
+
+	partMasters, totalRecords, err := ch.service.GetAllPartMasters(params)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
 
-	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", skills)
+	paginationResponse := utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, partMasters)
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", paginationResponse)
 }
 
 func (ch *PartMasterHandler) CreatePartMaster(ctx *gin.Context) {

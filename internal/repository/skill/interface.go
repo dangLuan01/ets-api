@@ -7,7 +7,7 @@ import (
 )
 
 type SkillRepository interface {
-	GetAllSkills() ([]models.SkillMaster, error)
+	GetAllSkills(params v1dto.GetAllSkillParams) ([]models.SkillMaster, int64, error)
 	CreateSkill(params v1dto.SkillParamsInput) error
 	FindSkillById(id int) (models.SkillMaster, error)
 	UpdateSkillById(id int, params goqu.Record) error

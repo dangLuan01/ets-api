@@ -17,8 +17,8 @@ func NewSkillService(repo repository.SkillRepository) SkillService {
 	}
 }
 
-func (ss *skillService) GetAllSkills() ([]models.SkillMaster, error) {
-	return ss.repo.GetAllSkills()
+func (ss *skillService) GetAllSkills(params v1dto.GetAllSkillParams) ([]models.SkillMaster, int64, error) {
+	return ss.repo.GetAllSkills(params)
 }
 
 func (ss *skillService) CreateSkill(params v1dto.SkillParamsInput) error {

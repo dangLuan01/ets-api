@@ -341,14 +341,20 @@ func (rt *SqlExamRepository) SaveAttemptWithAnswers(attempt models.UserAttempt, 
 	return tx.Commit()
 }
 
-func (rt *SqlExamRepository) FindAllExams() ([]models.ExamModel, error) {
+func (rt *SqlExamRepository) FindAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64, error) {
 	var exams []models.ExamModel
-	err := rt.db.From(TABLE_EXAM).
-		ScanStructs(&exams)
+	ds := rt.db.From(TABLE_EXAM)
+
+	totalRecords, err := ds.Count()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return exams, nil
+
+	if err := ds.Offset((uint(params.Page) - 1) * uint(params.Limit)).Limit(uint(params.Limit)).ScanStructs(&exams); err != nil {
+		return nil, 0, err
+	}
+
+	return exams, totalRecords, nil
 }
 
 func (rt *SqlExamRepository) CreateExam(exam v1dto.CreateExamInputParams) error {

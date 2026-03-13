@@ -7,7 +7,7 @@ import (
 )
 
 type CertificateRepository interface {
-	GetAllCertificates() ([]models.Certificate, error)
+	GetAllCertificates(params v1dto.GetAllCertificateParams) ([]models.Certificate, int64, error)
 	CreateCertificate(params v1dto.CertificateParamsInput) error
 	FindCertificateById(id int) (models.Certificate, error)
 	UpdateCertificateById(id int, params goqu.Record) error

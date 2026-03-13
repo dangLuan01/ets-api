@@ -20,7 +20,7 @@ type ExamRepository interface {
 	SaveAttemptWithAnswers(attempt models.UserAttempt, answers []models.UserAnswer) error
 
 	// --- REPO CHO ADMIN (CRUD EXAM) ---
-	FindAllExams() ([]models.ExamModel, error)
+	FindAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64, error)
 	CreateExam(exam v1dto.CreateExamInputParams) error
 	GetExamById(examId int) (models.ExamModel, error)
 	UpdateExam(examId int, params goqu.Record) error

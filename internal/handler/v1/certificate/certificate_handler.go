@@ -30,13 +30,28 @@ func NewCertificateHandler(service v1service.CertificateService) *CertificateHan
 }
 
 func (ch *CertificateHandler) GetAllCertificates(ctx *gin.Context) {
-	certificates, err := ch.service.GetAllCertificates()
+	var params v1dto.GetAllCertificateParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	if params.Page <= 0 {
+		params.Page = 1
+	}
+	if params.Limit <= 0 {
+		params.Limit = 20
+	}
+
+	certificates, totalRecords, err := ch.service.GetAllCertificates(params)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
 
-	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", certificates)
+	paginationResponse := utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, certificates)
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", paginationResponse)
 }
 
 func (ch *CertificateHandler) CreateCertificate(ctx *gin.Context) {

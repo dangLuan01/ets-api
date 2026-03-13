@@ -6,7 +6,7 @@ import (
 )
 
 type CertificateService interface {
-	GetAllCertificates() ([]models.Certificate, error)
+	GetAllCertificates(params v1dto.GetAllCertificateParams) ([]models.Certificate, int64, error)
 	CreateCertificate(params v1dto.CertificateParamsInput) error
 	EditCertificate(id int) (models.Certificate, error)
 	UpdateCertificate(params v1dto.CertificateParamsUpdate) error

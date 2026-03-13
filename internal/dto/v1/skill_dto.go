@@ -1,5 +1,10 @@
 package v1dto
 
+type GetAllSkillParams struct {
+	Page int32 `form:"page" binding:"omitempty,min=1"`
+	Limit int32 `form:"limit" binding:"omitempty,min=1,max=50"`
+}
+
 type SkillParamsInput struct {
 	CertId 		int 		`json:"cert_id" db:"cert_id" binding:"required"`
 	Code 		string 		`json:"code" db:"code" binding:"required,max=100"`

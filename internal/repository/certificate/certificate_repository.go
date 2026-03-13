@@ -22,14 +22,20 @@ func NewSqlCertificateRepository(DB *goqu.Database) CertificateRepository {
 	}
 }
 
-func (cr *SqlCertificateRepository) GetAllCertificates() ([]models.Certificate, error) {
+func (cr *SqlCertificateRepository) GetAllCertificates(params v1dto.GetAllCertificateParams) ([]models.Certificate, int64, error) {
 	var certificates []models.Certificate
-	err := cr.db.From(TABLE_CERTIFICATE).ScanStructs(&certificates)
+	ds := cr.db.From(TABLE_CERTIFICATE)
+
+	totalRecords, err := ds.Count()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	
-	return certificates, nil
+	if err := ds.Offset((uint(params.Page) - 1) * uint(params.Limit)).Limit(uint(params.Limit)).ScanStructs(&certificates); err != nil {
+		return nil, 0, err
+	}
+	
+	return certificates, totalRecords, nil
 }
 
 func (cr *SqlCertificateRepository) CreateCertificate(params v1dto.CertificateParamsInput) error {

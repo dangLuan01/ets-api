@@ -6,7 +6,7 @@ import (
 )
 
 type PartMasterService interface {
-	GetAllPartMasters() ([]models.PartMaster, error)
+	GetAllPartMasters(params v1dto.GetAllPartMasterParams) ([]models.PartMaster, int64, error)
 	CreatePartMaster(params v1dto.PartMasterParamsInput) error
 	EditPartMaster(id int) (models.PartMaster, error)
 	UpdatePartMaster(params v1dto.PartMasterParamsUpdate) error

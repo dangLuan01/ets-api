@@ -21,14 +21,20 @@ func NewSqlSkillRepository(DB *goqu.Database) SkillRepository {
 	}
 }
 
-func (cr *SqlSkillRepository) GetAllSkills() ([]models.SkillMaster, error) {
+func (cr *SqlSkillRepository) GetAllSkills(params v1dto.GetAllSkillParams) ([]models.SkillMaster, int64, error) {
 	var skills []models.SkillMaster
-	err := cr.db.From(TABLE_SKILLS).ScanStructs(&skills)
+	ds := cr.db.From(TABLE_SKILLS)
+
+	totalRecords, err := ds.Count()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+
+	if err:= ds.Offset((uint(params.Page) - 1) * uint(params.Limit)).Limit(uint(params.Limit)).ScanStructs(&skills); err != nil {
+		return nil, 0, err
 	}
 	
-	return skills, nil
+	return skills, totalRecords, nil
 }
 
 func (cr *SqlSkillRepository) CreateSkill(params v1dto.SkillParamsInput) error {

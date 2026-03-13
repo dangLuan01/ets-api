@@ -83,6 +83,7 @@ func NewApplication(cfg *config.Config) (*Application, error) {
 		NewCertificateModule(ctx),
 		NewSkillModule(ctx),
 		NewPartMasterModule(ctx),
+		NewQuestionModule(ctx),
 		// NewAuthModule(ctx, tokenService, cacheRedisService, mailService, rabbitmqService),
 		// NewStreamingModule(ctx, cacheRedisService, storeS3Service),
 		// NewVideoModule(ctx, storeS3Service),

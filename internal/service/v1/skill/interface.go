@@ -6,7 +6,7 @@ import (
 )
 
 type SkillService interface {
-	GetAllSkills() ([]models.SkillMaster, error)
+	GetAllSkills(params v1dto.GetAllSkillParams) ([]models.SkillMaster, int64, error)
 	CreateSkill(params v1dto.SkillParamsInput) error
 	EditSkill(id int) (models.SkillMaster, error)
 	UpdateSkill(params v1dto.SkillParamsUpdate) error

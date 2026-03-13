@@ -3,7 +3,7 @@ package models
 // --- TẦNG DANH MỤC (MASTER DATA) ---
 
 type Certificate struct {
-	Id 				int 					`json:"-" db:"id"`
+	Id 				int 					`json:"id" db:"id"`
 	Code 			string 					`json:"code" db:"code"`
 	Name 			string 					`json:"name" db:"name"`
 	Description 	*string 				`json:"description" db:"description"`

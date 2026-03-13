@@ -60,13 +60,28 @@ func (rh *ExamHandler) CalculateScoreExam(ctx *gin.Context) {
 // --- HANDLER CHO ADMIN (CRUD EXAM) ---
 
 func (rh *ExamHandler) GetAllExams(ctx *gin.Context){
-	exams, err := rh.service.GetAllExams()
+	var params v1dto.GetAllExamParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	if params.Page <= 0 {
+		params.Page = 1
+	}
+	if params.Limit <= 0 {
+		params.Limit = 20
+	}
+
+	exams, totalRecords, err := rh.service.GetAllExams(params)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
+
+	paginationResponse := utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, exams)
 	
-	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", exams)
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", paginationResponse)
 }
 
 func (rh *ExamHandler) CreateExam(ctx *gin.Context){

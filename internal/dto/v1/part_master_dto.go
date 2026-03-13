@@ -1,5 +1,10 @@
 package v1dto
 
+type GetAllPartMasterParams struct {
+	Page int32 `form:"page" binding:"omitempty,min=1"`
+	Limit int32 `form:"limit" binding:"omitempty,min=1,max=50"`
+}
+
 type PartMasterParamsInput struct {
 	SkillId 	int 		`json:"skill_id" db:"skill_id" binding:"required"`
 	Name 		string 		`json:"name" db:"name" binding:"required,max=100"`

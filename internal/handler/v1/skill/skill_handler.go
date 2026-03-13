@@ -25,13 +25,28 @@ func NewSkillHandler(service v1service.SkillService) *SkillHandler {
 }
 
 func (ch *SkillHandler) GetAllSkills(ctx *gin.Context) {
-	skills, err := ch.service.GetAllSkills()
+	var params v1dto.GetAllSkillParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	if params.Page <= 0 {
+		params.Page = 1
+	}
+	if params.Limit <= 0 {
+		params.Limit = 20
+	}
+
+	skills, totalRecords, err := ch.service.GetAllSkills(params)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
 
-	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", skills)
+	paginationResponse := utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, skills)
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", paginationResponse)
 }
 
 func (ch *SkillHandler) CreateSkill(ctx *gin.Context) {

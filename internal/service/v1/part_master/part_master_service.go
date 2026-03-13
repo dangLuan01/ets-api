@@ -17,8 +17,8 @@ func NewPartMasterService(repo repository.PartMasterRepository) PartMasterServic
 	}
 }
 
-func (ss *partMasterService) GetAllPartMasters() ([]models.PartMaster, error) {
-	return ss.repo.GetAllPartMasters()
+func (ss *partMasterService) GetAllPartMasters(params v1dto.GetAllPartMasterParams) ([]models.PartMaster, int64, error) {
+	return ss.repo.GetAllPartMasters(params)
 }
 
 func (ss *partMasterService) CreatePartMaster(params v1dto.PartMasterParamsInput) error {

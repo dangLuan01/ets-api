@@ -1,5 +1,10 @@
 package v1dto
 
+type GetAllExamParams struct {
+	Page int32 `form:"page" binding:"omitempty,min=1"`
+	Limit int32 `form:"limit" binding:"omitempty,min=1,max=50"`
+}
+
 type QuestionAnswerInputParams struct {
 	ExamId 		int 				`json:"exam_id"`
 	Answers 	[]UserAnswerInput 	`json:"answers"`

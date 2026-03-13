@@ -313,8 +313,8 @@ func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 	}, nil
 }
 
-func (rs *examService) GetAllExams() ([]models.ExamModel, error) {
-	return rs.repo.FindAllExams()
+func (rs *examService) GetAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64, error) {
+	return rs.repo.FindAllExams(params)
 }
 
 func (rs *examService) CreateExam(params v1dto.CreateExamInputParams) error {

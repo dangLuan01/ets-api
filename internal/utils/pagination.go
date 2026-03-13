@@ -9,28 +9,21 @@ type Pagination struct {
 	HasPrev 		bool  `json:"has_prev"`
 }
 
-func NewPagination(page, limit, totalRecords int32) *Pagination {
-	if page <= 0  {
-		page = 1
-	}
+func NewPagination(page int32, limit int32, totalRecords int64) *Pagination {
 
-	if limit <= 0 {
-		limit = 10
-	}
-
-	totalPages := (totalRecords + limit - 1) / limit
+	totalPages := (totalRecords + int64(limit) - 1) / int64(limit)
 	
 	return &Pagination{
 		Page:  page,
 		Limit: limit,
-		TotalRecords: totalRecords,
-		TotalPages: totalPages,
-		HasNext: page < totalPages,
+		TotalRecords: int32(totalRecords),
+		TotalPages: int32(totalPages),
+		HasNext: page < int32(totalPages),
 		HasPrev: page > 1,
 	}
 }
 
-func NewPaginationResponse(page, limit, totalRecords int32, data any) map[string]any {
+func NewPaginationResponse(page int32, limit int32, totalRecords int64, data any) map[string]any {
 	return map[string]any {
 		"response": data,
 		"pagination": NewPagination(page, limit, totalRecords),
