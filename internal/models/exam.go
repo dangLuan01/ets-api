@@ -11,7 +11,7 @@ type Certificate struct {
 }
 
 type SkillMaster struct {
-	Id 				int 					`json:"-" db:"id"`
+	Id 				int 					`json:"id" db:"id"`
 	CertId 			int 					`json:"cert_id" db:"cert_id"`
 	Code 			string 					`json:"code" db:"code"`
 	Name 			string 					`json:"name" db:"name"`
@@ -20,7 +20,7 @@ type SkillMaster struct {
 }
 
 type PartMaster struct {
-	Id 				int 					`json:"-" db:"id"`
+	Id 				int 					`json:"id" db:"id"`
 	SkillId 		int 					`json:"skill_id" db:"skill_id"`
 	PartNumber 		int 					`json:"part_number" db:"part_number"`
 	Name 			string 					`json:"name" db:"name"`
@@ -30,7 +30,7 @@ type PartMaster struct {
 // --- TẦNG RESPONSE (API JSON) ---
 
 type ExamModel struct {
-	Id 				int 					`json:"exam_id" db:"id"`
+	Id 				int 					`json:"id" db:"id"`
 	CertificateId	int						`json:"cert_id" db:"cert_id"`
 	Title 			string 					`json:"title" db:"title"`
 	Year 			int 					`json:"year" db:"year"`
