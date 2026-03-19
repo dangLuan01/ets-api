@@ -24,4 +24,5 @@ type ExamRepository interface {
 	CreateExam(exam v1dto.CreateExamInputParams) error
 	GetExamById(examId int) (models.ExamModel, error)
 	UpdateExam(examId int, params goqu.Record) error
+	CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error
 }

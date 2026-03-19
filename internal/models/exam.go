@@ -133,7 +133,6 @@ type Question struct {
 	SubOrder		int						`json:"sub_order" db:"sub_order"`
 	Explanation 	*string 				`json:"explanation" db:"explanation"`
 	Transcript 		*string 				`json:"transcript" db:"transcript"`
-	Difficulty 		*int 					`json:"-" db:"difficulty"`
 	Tags			*string 				`json:"-" db:"tags"`
 	Options			map[string]*string 		`json:"options"`
 }

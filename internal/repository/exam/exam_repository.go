@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"encoding/json"
+
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/dangLuan01/ets-api/internal/utils"
@@ -107,7 +109,6 @@ func (rt *SqlExamRepository) FindQuesionByIds(singleIDs []int) ([]models.Questio
 			goqu.C("correct_answer"),
 			goqu.C("explanation"),
 			goqu.C("transcript"),
-			goqu.C("difficulty"),
 			goqu.C("tags"),
 		).
 		Where(goqu.C("id").In(singleIDs)).
@@ -165,7 +166,6 @@ func (rt *SqlExamRepository) FindSubQuesionByGroupIds(groupIDs []int) ([]models.
 			goqu.C("correct_answer"),
 			goqu.C("explanation"),
 			goqu.C("transcript"),
-			goqu.C("difficulty"),
 			goqu.C("tags"),
 		).
 		Where(goqu.C("group_id").In(groupIDs)).
@@ -383,5 +383,27 @@ func (rt *SqlExamRepository) UpdateExam(examId int, params goqu.Record) error {
 		Where(goqu.C("id").Eq(examId)).
 		Executor().Exec()
 		
+	return err
+}
+
+func (rt *SqlExamRepository) CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error {
+	jsonBytes, err := json.Marshal(params.ExampleData)
+    if err != nil {
+        return err
+    }
+
+    insertData := goqu.Record{
+        "exam_id":        params.ExamId,
+        "part_id":        params.PartId,
+        "direction_text": params.Direction,
+        "audio_start_ms": params.AudioStartMs,
+        "audio_end_ms":   params.AudioEndMs,
+    }
+	if len(params.ExampleData) > 0 {
+        insertData["example_data"] = jsonBytes
+    }
+	
+	_, err = rt.db.Insert(TABLE_PART_DIRECTION).Rows(insertData).Executor().Exec()
+
 	return err
 }

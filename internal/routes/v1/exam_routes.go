@@ -25,5 +25,8 @@ func (tr *ExamRoutes) Register(r *gin.RouterGroup) {
 		exam.POST("/create", tr.handler.CreateExam)
 		exam.GET("/edit/:id", tr.handler.EditExam)
 		exam.PUT("/update", tr.handler.UpdateExam)
+		//Route for CRUD Advance (ADMIN)
+		//exam.GET("/:id/structure", tr.handler.GetExamStructure)
+		exam.POST("/part-direction/create", tr.handler.CreatePartDirection)
 	}
 }

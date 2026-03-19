@@ -1,8 +1,9 @@
 package v1dto
 
 type GetAllCertificateParams struct {
-	Page int32 `form:"page" binding:"omitempty,min=1"`
-	Limit int32 `form:"limit" binding:"omitempty,min=1,max=50"`
+	Page 		int32 	`form:"page" binding:"omitempty,min=1"`
+	Limit 		int32 	`form:"limit" binding:"omitempty,min=1,max=50"`
+	Name 		string 	`form:"name" binding:"omitempty,max=255"`
 }
 
 type CertificateParamsInput struct {

@@ -129,3 +129,18 @@ func (rh *ExamHandler) UpdateExam(ctx *gin.Context){
 
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
+
+func (rh *ExamHandler) CreatePartDirection(ctx *gin.Context){ 
+	var params v1dto.CreatePartDirectionInputParams
+	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	if err := rh.service.CreatePartDirection(params); err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseStatus(ctx, http.StatusNoContent)
+}

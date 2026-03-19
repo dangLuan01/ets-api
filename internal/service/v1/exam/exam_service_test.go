@@ -96,6 +96,10 @@ func (m *mockExamRepo) UpdateExam(examId int, params goqu.Record) error {
     return nil
 }
 
+func (m *mockExamRepo) CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error {
+    return nil
+}
+
 func TestCalculateScoreExam_Success(t *testing.T) {
     repo := &mockExamRepo{}
     service := &examService{repo: repo}

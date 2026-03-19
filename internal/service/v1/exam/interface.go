@@ -13,4 +13,5 @@ type ExamService interface {
 	CreateExam(params v1dto.CreateExamInputParams) error
 	EditExamById(examId int) (models.ExamModel, error)
 	UpdateExam(params v1dto.UpdateExamInputParams) error
+	CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error
 }

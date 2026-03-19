@@ -352,3 +352,7 @@ func (rs *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
 
 	return rs.repo.UpdateExam(params.Id, updateData)
 }
+
+func (rs *examService) CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error {
+	return rs.repo.CreatePartDirection(params)
+}

@@ -25,6 +25,9 @@ func NewSqlCertificateRepository(DB *goqu.Database) CertificateRepository {
 func (cr *SqlCertificateRepository) GetAllCertificates(params v1dto.GetAllCertificateParams) ([]models.Certificate, int64, error) {
 	var certificates []models.Certificate
 	ds := cr.db.From(TABLE_CERTIFICATE)
+	if params.Name != "" {
+		ds = ds.Where(goqu.C("name").ILike("%" + params.Name + "%"))
+	}
 
 	totalRecords, err := ds.Count()
 	if err != nil {
