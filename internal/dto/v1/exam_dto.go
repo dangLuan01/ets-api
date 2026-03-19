@@ -1,6 +1,10 @@
 package v1dto
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/dangLuan01/ets-api/internal/models"
+)
 
 type GetAllExamParams struct {
 	Page int32 `form:"page" binding:"omitempty,min=1"`
@@ -68,6 +72,40 @@ type CreatePartDirectionInputParams struct {
 	AudioStartMs 	int 				`json:"audio_start_ms" db:"audio_start_ms"`
 	AudioEndMs 		int 				`json:"audio_end_ms" db:"audio_end_ms"`
 	ExampleData 	json.RawMessage 	`json:"example_data" db:"example_data"`
+}
+
+type ExamStructure struct {
+	ExamId 			int					`json:"exam_id"`
+	ExamName 		string 				`json:"exam_name"`
+	CertCode   		string 				`json:"cert_code"`
+	Blueprint 		[]SkillDTO 			`json:"blueprint"`
+}
+
+type SkillDTO struct {
+	SkillId 		int 				`json:"skill_id"`
+	SkillCode 		string 				`json:"skill_code"`
+	SkillName 		string 				`json:"skill_name"`
+	Parts 			[]PartDTO 			`json:"parts"`
+}
+
+type PartDTO struct {
+	PartId 			int 				`json:"part_id"`
+	PartName 		string 				`json:"part_name"`
+	PartNumber 		int 				`json:"part_number"`
+}
+
+type ExamPart struct {
+	ExamId 		int 						`json:"exam_id"`
+	PartId 		int							`json:"part_id"`
+	Items		[]ExamQuestionMappingDTO 	`json:"items"`
+}
+
+type ExamQuestionMappingDTO struct {
+	EntityType 		string 					`json:"entity_type" db:"entity_type"`
+	EntityId 		int 					`json:"entity_id" db:"entity_id"`
+	OrderIndex 		int						`json:"order_index" db:"order_index"`
+	QuestionData 	*models.Question 		`json:"question_data,omitempty"`
+	GroupData 		*models.QuestionGroup	`json:"group_data,omitempty"`
 }
 
 func MapDetailExamScoreDTO(params DetailExamScore) *DetailExamScoreDTO {

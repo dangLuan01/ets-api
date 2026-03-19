@@ -100,6 +100,10 @@ func (m *mockExamRepo) CreatePartDirection(params v1dto.CreatePartDirectionInput
     return nil
 }
 
+func (m *mockExamRepo) FindExamQuestionMappingByPartId(examId int, partId int) ([]v1dto.ExamQuestionMappingDTO, error) {
+    return nil, nil
+}
+
 func TestCalculateScoreExam_Success(t *testing.T) {
     repo := &mockExamRepo{}
     service := &examService{repo: repo}

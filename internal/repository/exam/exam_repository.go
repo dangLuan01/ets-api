@@ -11,6 +11,7 @@ import (
 
 const (
 	TABLE_EXAM 					= "exams"
+	TABLE_CERTIFICATE 			= "certificates"
 	TABLE_EXAM_QUESTION_MAPPING = "exam_question_mappings"
 	TABLE_QUESTION_GROUP		= "question_groups"
 	TABLE_QUESTIONS 			= "questions"
@@ -36,22 +37,24 @@ func NewSqlExamRepository(DB *goqu.Database) ExamRepository {
 func (rt *SqlExamRepository) FindExamById(examId int) (models.Exam, error) {
 	var exam models.Exam
 
-	found, err := rt.db.From(TABLE_EXAM).
+	found, err := rt.db.From(goqu.T(TABLE_EXAM).As("e")).
 	Select(
-		goqu.C("id"),
-		goqu.C("cert_id"),
-		goqu.C("title"),
-		goqu.C("year"),
-		goqu.C("category"),
-		goqu.C("total_time"),
-		goqu.C("total_question"),
-		goqu.C("description"),
-		goqu.C("thumbnail"),
-		goqu.C("audio_full_url"),
-		goqu.C("status"),
-		goqu.C("created_at"),
+		goqu.I("e.id"),
+		goqu.I("e.cert_id"),
+		goqu.I("e.title"),
+		goqu.I("e.year"),
+		goqu.I("e.category"),
+		goqu.I("e.total_time"),
+		goqu.I("e.total_question"),
+		goqu.I("e.description"),
+		goqu.I("e.thumbnail"),
+		goqu.I("e.audio_full_url"),
+		goqu.I("e.status"),
+		goqu.I("e.created_at"),
+		goqu.I("s.code").As("cert_code"),
 	).
-	Where(goqu.C("id").Eq(examId)).ScanStruct(&exam)
+	Join(goqu.T(TABLE_CERTIFICATE).As("s"), goqu.On(goqu.I("s.id").Eq(goqu.I("e.cert_id")))).
+	Where(goqu.I("e.id").Eq(examId)).ScanStruct(&exam)
 	
 	if !found && err == nil {
 		return models.Exam{}, utils.NewError(string(utils.ErrCodeNotFound), "Not found exam.")
@@ -406,4 +409,26 @@ func (rt *SqlExamRepository) CreatePartDirection(params v1dto.CreatePartDirectio
 	_, err = rt.db.Insert(TABLE_PART_DIRECTION).Rows(insertData).Executor().Exec()
 
 	return err
+}
+
+func (rt *SqlExamRepository) FindExamQuestionMappingByPartId(examId int, partId int) ([]v1dto.ExamQuestionMappingDTO, error) {
+	var mappings []v1dto.ExamQuestionMappingDTO
+	err := rt.db.From(TABLE_EXAM_QUESTION_MAPPING).
+		Select(
+			goqu.C("entity_type"),
+			goqu.C("entity_id"),
+			goqu.C("order_index"),
+		).
+		Where(
+			goqu.C("exam_id").Eq(examId),
+			goqu.C("part_id").Eq(partId),
+		).
+		Order(goqu.C("order_index").Asc()).
+		ScanStructs(&mappings)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return mappings, nil
 }

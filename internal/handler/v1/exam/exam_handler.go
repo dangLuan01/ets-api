@@ -18,6 +18,11 @@ type GetIdExamParams struct {
 	Id int `uri:"id" binding:"required"`
 }
 
+type GetExamPartParams struct {
+	ExamId int `uri:"id" binding:"required"`
+	PartId int `uri:"part_id" binding:"required"`
+}
+
 func NewExamHandler(service v1service.ExamService) *ExamHandler {
 	return &ExamHandler {
 		service: service,
@@ -143,4 +148,36 @@ func (rh *ExamHandler) CreatePartDirection(ctx *gin.Context){
 	}
 
 	utils.ResponseStatus(ctx, http.StatusNoContent)
+}
+
+func (rh *ExamHandler) GetExamStructure(ctx *gin.Context){
+	var params GetIdExamParams
+	if err := ctx.ShouldBindUri(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	examStructure, err := rh.service.GetExamStructure(params.Id)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", examStructure)
+}
+
+func (rh *ExamHandler) GetExamPart(ctx *gin.Context){
+	var params GetExamPartParams
+	if err := ctx.ShouldBindUri(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	examPart, err := rh.service.GetExamPart(params.ExamId, params.PartId)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", examPart)
 }

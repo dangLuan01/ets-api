@@ -24,7 +24,6 @@ func NewExamService(repo repository.ExamRepository) ExamService {
 
 func (rs *examService) FindExamById(examId int) (models.Exam, error) {
 
-
 	exam, err := rs.repo.FindExamById(examId)
 	if err != nil {
 		return models.Exam{}, err
@@ -355,4 +354,227 @@ func (rs *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
 
 func (rs *examService) CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error {
 	return rs.repo.CreatePartDirection(params)
+}
+
+func (rs *examService) GetExamStructure(examId int) (v1dto.ExamStructure, error) {
+	exam, err := rs.repo.FindExamById(examId)
+	if err != nil {
+		return v1dto.ExamStructure{}, err
+	}
+
+	sections, err := rs.repo.FindExamQuestionMappingById(examId)
+	if err != nil {
+		return v1dto.ExamStructure{}, err
+	}
+
+	singleIDs 	:= make([]int, 0)
+	groupIDs	:= make([]int, 0)
+
+	for _, s := range sections {
+		switch s.EntityType {
+		case "SINGLE":
+			singleIDs = append(singleIDs, s.EntityId)
+		case "GROUP":
+			groupIDs = append(groupIDs, s.EntityId)
+		}
+	}
+
+	directionMap 	:= make(map[int]models.Direction)
+	directions, err := rs.repo.FindDirectionByExamId(examId)
+	if err == nil {
+		for i := range directions {
+			d := &directions[i]
+			directionMap[d.PartId] = *d
+		}
+	}
+
+
+	skillsMater, err := rs.repo.FindSkillsByCertId(exam.CertificateId)
+	if err != nil {
+		return v1dto.ExamStructure{}, err
+	}
+
+	partsMaster, err := rs.repo.FindPartsByCertId(exam.CertificateId)
+	if err != nil {
+		return v1dto.ExamStructure{}, err
+	}
+
+	skillMasterMap := make(map[int]models.SkillMaster)
+	for _, sm := range skillsMater {
+		skillMasterMap[sm.Id] = sm
+	}
+
+	partMasterMap := make(map[int]models.PartMaster)
+    for _, pm := range partsMaster {
+        partMasterMap[pm.Id] = pm
+    }
+
+	sectionsByPart := make(map[int][]models.ExamQuestionMapping)
+
+	for _, s := range sections {
+		sectionsByPart[s.PartId] = append(sectionsByPart[s.PartId], s)
+	}
+
+	partIDSet := make(map[int]bool)
+	for partID := range sectionsByPart {
+		partIDSet[partID] = true
+	}
+	for partID := range directionMap {
+		partIDSet[partID] = true
+	}
+
+	partsBySkill := make(map[int][]v1dto.PartDTO)
+
+	for partID := range partIDSet {
+		pm, ok := partMasterMap[partID]
+		if !ok {
+			continue
+		}
+
+		examPart := v1dto.PartDTO{
+			PartId: partID,
+			PartNumber: pm.PartNumber,
+			PartName: pm.Name,
+		}
+
+		partsBySkill[pm.SkillId] = append(partsBySkill[pm.SkillId], examPart)
+	}
+
+	var examSkills []v1dto.SkillDTO
+
+	for skillID, examParts := range partsBySkill {
+        sm, ok := skillMasterMap[skillID]
+        if !ok { continue }
+
+        // Sắp xếp các Part bên trong Skill theo PartNumber (0, 1, 2, 3...)
+        sort.Slice(examParts, func(i, j int) bool {
+            return examParts[i].PartNumber < examParts[j].PartNumber
+        })
+
+        examSkills = append(examSkills, v1dto.SkillDTO{
+            SkillId:   skillID,
+            SkillCode: sm.Code,
+            SkillName: sm.Name,
+            Parts:     examParts,
+        })
+    }
+
+	sort.Slice(examSkills, func(i, j int) bool {
+        return skillMasterMap[examSkills[i].SkillId].OrderIndex < skillMasterMap[examSkills[j].SkillId].OrderIndex
+    })
+
+	return v1dto.ExamStructure{
+		ExamId: exam.Id,
+		ExamName: exam.Title,
+		CertCode: exam.CertCode,
+		Blueprint: examSkills,
+	}, nil
+}
+
+func (rs *examService) GetExamPart(examId int, partId int) (v1dto.ExamPart, error) {
+	sections, err := rs.repo.FindExamQuestionMappingByPartId(examId, partId)
+	if err != nil {
+		return v1dto.ExamPart{}, err
+	}
+
+	singleIDs 	:= make([]int, 0)
+	groupIDs	:= make([]int, 0)
+
+	for _, s := range sections {
+		switch s.EntityType {
+		case "SINGLE":
+			singleIDs = append(singleIDs, s.EntityId)
+		case "GROUP":
+			groupIDs = append(groupIDs, s.EntityId)
+		}
+	}
+
+	questionMap 	:= make(map[int]models.Question)
+	groupMap 		:= make(map[int]*models.QuestionGroup)
+
+	if len(singleIDs) > 0 {
+
+		questions, err := rs.repo.FindQuesionByIds(singleIDs)
+		
+		if err != nil {
+			return v1dto.ExamPart{}, err
+		}
+
+		for i := range questions {
+			
+			q := &questions[i]
+
+			opts := map[string]*string{
+				"A": q.OptionA,
+				"B": q.OptionB,
+				"C": q.OptionC,
+				"D": q.OptionD,
+			}
+			q.Options = opts
+			questionMap[q.Id] = *q
+		}
+	}
+
+	if len(groupIDs) > 0 {
+
+		groups, err := rs.repo.FindGroupQuestionByIds(groupIDs)
+		
+		if err != nil {
+			return v1dto.ExamPart{}, err
+		}
+
+		for _, g := range groups {
+			gCopy := g
+			groupMap[g.Id] = &gCopy
+		}
+
+		subQuestions, err := rs.repo.FindSubQuesionByGroupIds(groupIDs)
+
+		if err != nil { 
+			return v1dto.ExamPart{}, err 
+		}
+
+		for i := range subQuestions {
+			q := &subQuestions[i]
+
+			q.Options = map[string]*string{
+				"A": q.OptionA,
+				"B": q.OptionB,
+				"C": q.OptionC,
+				"D": q.OptionD,
+			}
+
+			g := groupMap[*q.GroupId]
+			g.SubQuestions = append(g.SubQuestions, *q)
+			groupMap[*q.GroupId] = g
+		}
+	}
+
+	for i := range sections {
+		s := &sections[i]		
+
+		switch s.EntityType {
+		case "SINGLE":
+			if q, ok := questionMap[s.EntityId]; ok {
+				q.DisplayNumber = s.OrderIndex
+				qCopy := q
+				s.QuestionData = &qCopy
+			}
+
+		case "GROUP":
+			if g, ok := groupMap[s.EntityId]; ok {
+				for j := range g.SubQuestions {
+					g.SubQuestions[j].DisplayNumber = s.OrderIndex + j
+				}
+
+				s.GroupData = g
+			}
+		}
+	}
+
+	return v1dto.ExamPart{
+		ExamId: examId,
+		PartId: partId,
+		Items: sections,
+	}, nil
 }
