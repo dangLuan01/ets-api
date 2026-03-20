@@ -181,3 +181,33 @@ func (rh *ExamHandler) GetExamPart(ctx *gin.Context){
 
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", examPart)
 }
+
+func (rh *ExamHandler) UpdateQuestionSingle(ctx *gin.Context){
+	var params v1dto.UpdateQuestionSingleInputParams
+	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	if err := rh.service.UpdateQuestionSingle(params); err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseStatus(ctx, http.StatusNoContent)
+}
+
+func (rh *ExamHandler) UpdateQuestionGroup(ctx *gin.Context){
+	var params v1dto.UpdateQuestionGroupInputParams
+	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	if err := rh.service.UpdateQuestionGroup(params); err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseStatus(ctx, http.StatusNoContent)
+}

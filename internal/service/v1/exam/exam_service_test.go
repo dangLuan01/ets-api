@@ -104,6 +104,14 @@ func (m *mockExamRepo) FindExamQuestionMappingByPartId(examId int, partId int) (
     return nil, nil
 }
 
+func (m *mockExamRepo) UpdateQuestionSingle(params v1dto.UpdateQuestionSingleInputParams) error {
+    return nil
+}
+
+func (m *mockExamRepo) UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInputParams) error {
+   return nil
+}
+
 func TestCalculateScoreExam_Success(t *testing.T) {
     repo := &mockExamRepo{}
     service := &examService{repo: repo}

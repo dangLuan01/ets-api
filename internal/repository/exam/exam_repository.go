@@ -432,3 +432,79 @@ func (rt *SqlExamRepository) FindExamQuestionMappingByPartId(examId int, partId 
 
 	return mappings, nil
 }
+
+func (rt *SqlExamRepository) UpdateQuestionSingle(params v1dto.UpdateQuestionSingleInputParams) error {
+	updateData := goqu.Record{
+		"question_text": params.QuestionText,
+		"image_url": params.ImageUrl,
+		"audio_start_ms": params.AudioStartMs,
+		"audio_end_ms": params.AudioEndMs,
+		"sub_order": params.SubOrder,
+		"option_a": params.OptionA,
+		"option_b": params.OptionB,
+		"option_c": params.OptionC,
+		"option_d": params.OptionD,
+		"correct_answer": params.CorrectAnswer,
+		"explanation": params.Explanation,
+		"transcript": params.Transcript,
+		"tags": params.Tags,
+	}
+
+	_, err := rt.db.From(TABLE_QUESTIONS).
+		Update().Set(updateData).
+		Where(goqu.C("id").Eq(params.QuestionId)).
+		Executor().Exec()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (rt *SqlExamRepository) UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInputParams) error {
+	updateDataGroup := goqu.Record{
+		"passage_text": params.PassageText,
+		"image_url": params.ImageUrl,
+		"audio_start_ms": params.AudioStartMs,
+		"audio_end_ms": params.AudioEndMs,
+		"explanation": params.Explanation,
+		"transcript": params.Transcript,
+	}
+
+	_, err := rt.db.From(TABLE_QUESTION_GROUP).
+		Update().Set(updateDataGroup).
+		Where(goqu.C("id").Eq(params.GroupId)).
+		Executor().Exec()
+
+	if err != nil {
+		return err
+	}
+
+	updateDataQuestions := make([]goqu.Record, len(params.SubQuestions))
+	for i, subQ := range params.SubQuestions {
+		updateDataQuestions[i] = goqu.Record{
+			"question_text": subQ.QuestionText,
+			"option_a": subQ.OptionA,
+			"option_b": subQ.OptionB,
+			"option_c": subQ.OptionC,
+			"option_d": subQ.OptionD,
+			"sub_order": subQ.SubOrder,
+			"correct_answer": subQ.CorrectAnswer,
+			"explanation": subQ.Explanation,
+		}
+	}
+	
+	for i, subQ := range params.SubQuestions {
+		_, err := rt.db.From(TABLE_QUESTIONS).
+			Update().Set(updateDataQuestions[i]).
+			Where(goqu.C("id").Eq(subQ.QuestionId)).
+			Executor().Exec()
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

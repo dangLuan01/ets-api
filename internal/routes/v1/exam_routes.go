@@ -29,5 +29,7 @@ func (tr *ExamRoutes) Register(r *gin.RouterGroup) {
 		exam.GET("/:id/structure", tr.handler.GetExamStructure)
 		exam.GET(":id/parts/:part_id", tr.handler.GetExamPart)
 		exam.POST("/part-direction/create", tr.handler.CreatePartDirection)
+		exam.PUT("/questions/update", tr.handler.UpdateQuestionSingle)
+		exam.PUT("/question-groups/update", tr.handler.UpdateQuestionGroup)
 	}
 }

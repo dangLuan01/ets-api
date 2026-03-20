@@ -108,6 +108,47 @@ type ExamQuestionMappingDTO struct {
 	GroupData 		*models.QuestionGroup	`json:"group_data,omitempty"`
 }
 
+type UpdateQuestionSingleInputParams struct {
+	// ExamId 			int 					`json:"exam_id" binding:"required"`
+	QuestionId 		int 					`json:"question_id" binding:"required"`
+	QuestionText 	*string 				`json:"question_text,omitempty"`
+	ImageUrl 		*string 				`json:"image_url,omitempty"`
+	CorrectAnswer 	string 					`json:"correct_answer" binding:"required"`
+	OptionA 		*string 				`json:"option_a,omitempty"`
+	OptionB 		*string 				`json:"option_b,omitempty"`
+	OptionC 		*string 				`json:"option_c,omitempty"`
+	OptionD 		*string 				`json:"option_d,omitempty"`
+	SubOrder 		int 					`json:"sub_order" binding:"required"`
+	AudioStartMs 	*int 					`json:"audio_start_ms,omitempty"`
+	AudioEndMs 		*int 					`json:"audio_end_ms,omitempty"`
+	Explanation 	*string 				`json:"explanation,omitempty"`
+	Transcript 		*string 				`json:"transcript,omitempty"`
+	Tags 			*string 				`json:"tags,omitempty"`
+}
+
+type UpdateQuestionGroupInputParams struct {
+	// ExamId 		int 						`json:"exam_id" binding:"required"`
+	// PartId 		int 						`json:"part_id" binding:"required"`
+	GroupId 		int 					`json:"group_id" binding:"required"`
+	PassageText 	*string 				`json:"passage_text,omitempty"`
+	ImageUrl 		*string 				`json:"image_url,omitempty"`
+	AudioStartMs 	*int 					`json:"audio_start_ms,omitempty"`
+	AudioEndMs 		*int 					`json:"audio_end_ms,omitempty"`
+	Explanation 	*string 				`json:"explanation,omitempty"`
+	Transcript 		*string 				`json:"transcript,omitempty"`
+	SubQuestions 	[]struct {
+		QuestionId 		int 				`json:"question_id" binding:"required"`
+		QuestionText 	*string 			`json:"question_text,omitempty"`
+		CorrectAnswer 	string 				`json:"correct_answer" binding:"required"`
+		OptionA 		*string 			`json:"option_a,omitempty"`
+		OptionB 		*string 			`json:"option_b,omitempty"`
+		OptionC 		*string 			`json:"option_c,omitempty"`
+		OptionD 		*string 			`json:"option_d,omitempty"`
+		SubOrder 		int 				`json:"sub_order" binding:"required"`
+		Explanation 	*string 			`json:"explanation,omitempty"`
+	} `json:"sub_questions" binding:"required"`
+}
+
 func MapDetailExamScoreDTO(params DetailExamScore) *DetailExamScoreDTO {
 	rawScoreMap := make(map[string]int)
     scaledScoreMap := make(map[string]int)

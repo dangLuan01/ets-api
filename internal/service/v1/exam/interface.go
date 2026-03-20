@@ -16,4 +16,6 @@ type ExamService interface {
 	CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error
 	GetExamStructure(examId int) (v1dto.ExamStructure, error)
 	GetExamPart(examId int, partId int) (v1dto.ExamPart, error)
+	UpdateQuestionSingle(params v1dto.UpdateQuestionSingleInputParams) error
+	UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInputParams) error
 }

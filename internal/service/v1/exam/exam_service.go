@@ -578,3 +578,11 @@ func (rs *examService) GetExamPart(examId int, partId int) (v1dto.ExamPart, erro
 		Items: sections,
 	}, nil
 }
+
+func (rs *examService) UpdateQuestionSingle(params v1dto.UpdateQuestionSingleInputParams) error {
+	return rs.repo.UpdateQuestionSingle(params)
+}
+
+func (rs *examService) UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInputParams) error {
+	return rs.repo.UpdateQuestionGroup(params)
+}
