@@ -211,3 +211,18 @@ func (rh *ExamHandler) UpdateQuestionGroup(ctx *gin.Context){
 
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
+
+func (rh *ExamHandler) UpdatePartDirection(ctx *gin.Context){
+	var params v1dto.UpdatePartDirectionInputParams
+	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	if err := rh.service.UpdatePartDirection(params); err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseStatus(ctx, http.StatusNoContent)
+}

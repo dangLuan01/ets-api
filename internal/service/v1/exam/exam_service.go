@@ -7,18 +7,21 @@ import (
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
-	repository "github.com/dangLuan01/ets-api/internal/repository/exam"
+	repositoryExam "github.com/dangLuan01/ets-api/internal/repository/exam"
+	repositoryPartDirection "github.com/dangLuan01/ets-api/internal/repository/part_direction"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/doug-martin/goqu/v9"
 )
 
 type examService struct {
-	repo repository.ExamRepository
+	repo repositoryExam.ExamRepository
+	repoPartDirection repositoryPartDirection.PartDirectionRepository
 }
 
-func NewExamService(repo repository.ExamRepository) ExamService {
+func NewExamService(repo repositoryExam.ExamRepository, repoPartDirection repositoryPartDirection.PartDirectionRepository) ExamService {
 	return &examService{
 		repo: repo,
+		repoPartDirection: repoPartDirection,
 	}
 }
 
@@ -51,7 +54,7 @@ func (rs *examService) FindExamById(examId int) (models.Exam, error) {
 	groupMap 		:= make(map[int]*models.QuestionGroup)
 
 	directionMap 	:= make(map[int]models.Direction)
-	directions, err := rs.repo.FindDirectionByExamId(examId)
+	directions, err := rs.repoPartDirection.FindDirectionByExamId(examId)
 	if err == nil {
 		for i := range directions {
 			d := &directions[i]
@@ -353,7 +356,11 @@ func (rs *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
 }
 
 func (rs *examService) CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error {
-	return rs.repo.CreatePartDirection(params)
+	return rs.repoPartDirection.CreatePartDirection(params)
+}
+
+func (rs *examService) UpdatePartDirection(params v1dto.UpdatePartDirectionInputParams) error {
+	return rs.repoPartDirection.UpdatePartDirection(params)
 }
 
 func (rs *examService) GetExamStructure(examId int) (v1dto.ExamStructure, error) {
@@ -380,14 +387,13 @@ func (rs *examService) GetExamStructure(examId int) (v1dto.ExamStructure, error)
 	}
 
 	directionMap 	:= make(map[int]models.Direction)
-	directions, err := rs.repo.FindDirectionByExamId(examId)
+	directions, err := rs.repoPartDirection.FindDirectionByExamId(examId)
 	if err == nil {
 		for i := range directions {
 			d := &directions[i]
 			directionMap[d.PartId] = *d
 		}
 	}
-
 
 	skillsMater, err := rs.repo.FindSkillsByCertId(exam.CertificateId)
 	if err != nil {
@@ -472,6 +478,8 @@ func (rs *examService) GetExamStructure(examId int) (v1dto.ExamStructure, error)
 }
 
 func (rs *examService) GetExamPart(examId int, partId int) (v1dto.ExamPart, error) {
+	var directionMap models.Direction
+	
 	sections, err := rs.repo.FindExamQuestionMappingByPartId(examId, partId)
 	if err != nil {
 		return v1dto.ExamPart{}, err
@@ -491,6 +499,18 @@ func (rs *examService) GetExamPart(examId int, partId int) (v1dto.ExamPart, erro
 
 	questionMap 	:= make(map[int]models.Question)
 	groupMap 		:= make(map[int]*models.QuestionGroup)
+	
+	direction, err := rs.repoPartDirection.FindDirectionByExamIdAndPartId(examId, partId)
+	if err == nil {
+		d := &direction
+		if len(d.ExampleRaw) > 0 {
+			var ex models.ExampleData
+			if err := json.Unmarshal(d.ExampleRaw, &ex); err == nil {
+				d.Example = &ex
+			}
+		}
+		directionMap = *d
+	}
 
 	if len(singleIDs) > 0 {
 
@@ -575,6 +595,7 @@ func (rs *examService) GetExamPart(examId int, partId int) (v1dto.ExamPart, erro
 	return v1dto.ExamPart{
 		ExamId: examId,
 		PartId: partId,
+		Direction: &directionMap,
 		Items: sections,
 	}, nil
 }

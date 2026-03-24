@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"encoding/json"
-
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/dangLuan01/ets-api/internal/utils"
@@ -183,31 +181,6 @@ func (rt *SqlExamRepository) FindSubQuesionByGroupIds(groupIDs []int) ([]models.
 	return subQuestions, nil
 }
 
-func (rt *SqlExamRepository) FindDirectionByExamId(examId int) ([]models.Direction, error) {
-	var partDirections []models.Direction
-
-	err := rt.db.From(TABLE_PART_DIRECTION).
-		Select(
-			goqu.C("id"),
-			goqu.C("exam_id"),
-			goqu.C("direction_text"),
-			goqu.C("part_id"),
-			goqu.C("audio_start_ms"),
-			goqu.C("audio_end_ms"),
-			goqu.C("example_data"),
-		).
-		Where(goqu.C("exam_id").Eq(examId)).
-		Order(goqu.C("part_id").Asc()).
-		ScanStructs(&partDirections)
-	
-	if err != nil {
-		
-		return nil, err
-	}
-
-	return partDirections, nil
-}
-
 func (rt *SqlExamRepository) FindSkillsByCertId(certId int) ([]models.SkillMaster, error) {
 	var skillsMaster []models.SkillMaster
 	err := rt.db.From(TABLE_SKILLS).
@@ -386,28 +359,6 @@ func (rt *SqlExamRepository) UpdateExam(examId int, params goqu.Record) error {
 		Where(goqu.C("id").Eq(examId)).
 		Executor().Exec()
 		
-	return err
-}
-
-func (rt *SqlExamRepository) CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error {
-	jsonBytes, err := json.Marshal(params.ExampleData)
-    if err != nil {
-        return err
-    }
-
-    insertData := goqu.Record{
-        "exam_id":        params.ExamId,
-        "part_id":        params.PartId,
-        "direction_text": params.Direction,
-        "audio_start_ms": params.AudioStartMs,
-        "audio_end_ms":   params.AudioEndMs,
-    }
-	if len(params.ExampleData) > 0 {
-        insertData["example_data"] = jsonBytes
-    }
-	
-	_, err = rt.db.Insert(TABLE_PART_DIRECTION).Rows(insertData).Executor().Exec()
-
 	return err
 }
 

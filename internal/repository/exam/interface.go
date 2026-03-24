@@ -12,7 +12,6 @@ type ExamRepository interface {
 	FindQuesionByIds(singleIDs []int) ([]models.Question, error)
 	FindGroupQuestionByIds(groupIDs []int) ([]models.QuestionGroup, error)
 	FindSubQuesionByGroupIds(groupIDs []int) ([]models.Question, error)
-	FindDirectionByExamId(examId int) ([]models.Direction, error)
 	FindSkillsByCertId(certId int) ([]models.SkillMaster, error)
 	FindPartsByCertId(certId int) ([]models.PartMaster, error)
 	GetCorrectAnswersWithSkillContext(examId int, ids []int) ([]v1dto.QuestionWithSkill, error)
@@ -24,7 +23,6 @@ type ExamRepository interface {
 	CreateExam(exam v1dto.CreateExamInputParams) error
 	GetExamById(examId int) (models.ExamModel, error)
 	UpdateExam(examId int, params goqu.Record) error
-	CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error
 	FindExamQuestionMappingByPartId(examId int, partId int) ([]v1dto.ExamQuestionMappingDTO, error)
 	UpdateQuestionSingle(params v1dto.UpdateQuestionSingleInputParams) error
 	UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInputParams) error
