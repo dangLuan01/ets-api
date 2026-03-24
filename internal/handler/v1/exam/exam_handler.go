@@ -226,3 +226,24 @@ func (rh *ExamHandler) UpdatePartDirection(ctx *gin.Context){
 
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
+
+func (rh *ExamHandler) ImportExamQuestionFromExcel(ctx *gin.Context){
+	var params GetIdExamParams
+	if err := ctx.ShouldBindUri(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	// file, err := ctx.FormFile("file")
+	// if err != nil {
+	// 	utils.ResponseValidator(ctx, "File is required")
+	// 	return
+	// }
+
+	if err := rh.service.ImportExamQuestionFromExcel(params.Id); err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseStatus(ctx, http.StatusNoContent)
+}

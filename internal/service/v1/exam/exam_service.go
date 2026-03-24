@@ -3,25 +3,31 @@ package v1service
 import (
 	"encoding/json"
 	"sort"
+	"strconv"
 	"time"
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 	repositoryExam "github.com/dangLuan01/ets-api/internal/repository/exam"
 	repositoryPartDirection "github.com/dangLuan01/ets-api/internal/repository/part_direction"
+	repositoryQuestion "github.com/dangLuan01/ets-api/internal/repository/question"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/doug-martin/goqu/v9"
+
+	"github.com/xuri/excelize/v2"
 )
 
 type examService struct {
 	repo repositoryExam.ExamRepository
 	repoPartDirection repositoryPartDirection.PartDirectionRepository
+	repoQuestion repositoryQuestion.QuestionRepository
 }
 
-func NewExamService(repo repositoryExam.ExamRepository, repoPartDirection repositoryPartDirection.PartDirectionRepository) ExamService {
+func NewExamService(repo repositoryExam.ExamRepository, repoPartDirection repositoryPartDirection.PartDirectionRepository, repoQuestion repositoryQuestion.QuestionRepository) ExamService {
 	return &examService{
 		repo: repo,
 		repoPartDirection: repoPartDirection,
+		repoQuestion: repoQuestion,
 	}
 }
 
@@ -606,4 +612,173 @@ func (rs *examService) UpdateQuestionSingle(params v1dto.UpdateQuestionSingleInp
 
 func (rs *examService) UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInputParams) error {
 	return rs.repo.UpdateQuestionGroup(params)
+}
+
+func (rs *examService) ImportExamQuestionFromExcel(examId int) error {
+	f, err := excelize.OpenFile("../../assets/Import.xlsx")
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	rows, err := f.GetRows("Sheet1")
+	if err != nil {
+		return err
+	}
+	
+	getSafeCell := func(r []string, index int) string {
+		if index < len(r) { 
+			return r[index] 
+		}
+
+		return ""
+    }
+
+	groupTracker := make(map[string]*v1dto.QuestionGroupParamsInput)
+	
+	for i, row := range rows {
+		if i == 0 {
+			continue
+		}
+		
+		orderNoStr := getSafeCell(row, 0)
+		partIdStr := getSafeCell(row, 1)
+		PartStr := getSafeCell(row, 2)
+		tempGroupId := getSafeCell(row, 3)
+		passageText := getSafeCell(row, 4)
+		questionText := getSafeCell(row, 5)
+		optionA := getSafeCell(row, 6)
+		optionB := getSafeCell(row, 7)
+		optionC := getSafeCell(row, 8)
+		optionD := getSafeCell(row, 9)
+		correctAnswer := getSafeCell(row, 10)
+		explanation := getSafeCell(row, 11)
+		transcript := getSafeCell(row, 12)
+		audioStartMsStr := getSafeCell(row, 13)
+		audioEndMsStr := getSafeCell(row, 14)
+		imageUrl := getSafeCell(row, 15)
+
+		partId, _ := strconv.Atoi(partIdStr)
+		part, _ := strconv.Atoi(PartStr)
+		orderNo, _ := strconv.Atoi(orderNoStr)
+		audioStartMs, _ := strconv.Atoi(audioStartMsStr)
+		audioEndMs, _ := strconv.Atoi(audioEndMsStr)
+
+		if tempGroupId == "" {
+			questionSingle := v1dto.QuestionParamsInput{
+				ExamId: int64(examId),
+				EntityType: "SINGLE",
+				PartId:	partId,
+				Part: part,
+				QuestionText: &questionText,
+				OptionA: &optionA,
+				OptionB: &optionB,
+				OptionC: &optionC,
+				OptionD: &optionD,
+				CorrectAnswer: correctAnswer,
+				Explanation: &explanation,
+				Transcript: &transcript,
+				AudioStartMs: &audioStartMs,
+				AudioEndMs: &audioEndMs,
+				ImageUrl: &imageUrl,
+				SubOrder: orderNo,
+			}
+			
+			questionId, err := rs.repoQuestion.CreateQuestion(questionSingle)
+			if err != nil {
+				return err
+			}
+			questionMapping := v1dto.ExamQuestionMappingInput{
+				ExamId: int64(examId),
+				EntityType: "SINGLE",
+				EntityId: questionId,
+				OrderIndex: orderNo,
+				PartId: partId,
+			}
+
+			err = rs.repoQuestion.CreateQuestionMapping(questionMapping)
+			if err != nil {
+				return err
+			}
+		} else {
+			if _, exists := groupTracker[tempGroupId]; !exists {
+				newGroup := &v1dto.QuestionGroupParamsInput{
+					ExamId: int64(examId),
+					PartId: partId,
+					EntityType: "GROUP",
+					PassageText: &passageText,
+					ImageUrl: &imageUrl,
+					AudioStartMs: &audioStartMs,
+					AudioEndMs: &audioEndMs,
+					Explanation: &explanation,
+					Transcript: &transcript,
+					SubQuestions: []v1dto.QuestionParams{},
+				}
+				groupTracker[tempGroupId] = newGroup
+			}
+
+			subQuestionRaw := v1dto.QuestionParams{
+				Part: part,
+				QuestionText: &questionText,
+				OptionA: &optionA,
+				OptionB: &optionB,
+				OptionC: &optionC,
+				OptionD: &optionD,
+				CorrectAnswer: correctAnswer,
+				SubOrder: orderNo,
+			}
+
+			groupTracker[tempGroupId].SubQuestions = append(groupTracker[tempGroupId].SubQuestions, subQuestionRaw)
+		}
+	}
+
+	if len(groupTracker) > 0 {
+		for _, group := range groupTracker {
+			groupId, err := rs.repoQuestion.CreateQuestionGroup(*group)
+			if err != nil {
+				return err
+			}
+
+			var paramsQuestion []v1dto.QuestionParamsInput
+			for _, subQuestion := range group.SubQuestions {
+				paramsQuestion = append(paramsQuestion, v1dto.QuestionParamsInput{
+					GroupId: &groupId,
+					Part: subQuestion.Part,
+					QuestionText: subQuestion.QuestionText,
+					ImageUrl: subQuestion.ImageUrl,
+					CorrectAnswer: subQuestion.CorrectAnswer,
+					OptionA: subQuestion.OptionA,
+					OptionB: subQuestion.OptionB,
+					OptionC: subQuestion.OptionC,
+					OptionD: subQuestion.OptionD,
+					AudioStartMs: subQuestion.AudioStartMs,
+					AudioEndMs: subQuestion.AudioEndMs,
+					SubOrder: subQuestion.SubOrder,
+					Explanation: subQuestion.Explanation,
+					Transcript: subQuestion.Transcript,
+					Tags: subQuestion.Tags,
+				})
+			}
+
+			err = rs.repoQuestion.CreateQuestions(paramsQuestion)
+			if err != nil {
+				return err
+			}
+
+			paramsQuestionGroupMapping := v1dto.ExamQuestionMappingInput{
+				ExamId: int64(examId),
+				EntityType: "GROUP",
+				EntityId: groupId,
+				OrderIndex: group.SubQuestions[0].SubOrder,
+				PartId: group.PartId,
+			}
+
+			err = rs.repoQuestion.CreateQuestionGroupMapping(paramsQuestionGroupMapping)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	
+	return  nil
 }

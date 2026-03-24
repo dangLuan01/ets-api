@@ -21,4 +21,5 @@ type ExamService interface {
 	GetExamPart(examId int, partId int) (v1dto.ExamPart, error)
 	UpdateQuestionSingle(params v1dto.UpdateQuestionSingleInputParams) error
 	UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInputParams) error
+	ImportExamQuestionFromExcel(examId int) error
 }
