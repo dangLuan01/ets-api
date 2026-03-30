@@ -1,6 +1,8 @@
 package v1dto
 
 import (
+	"mime/multipart"
+
 	"github.com/dangLuan01/ets-api/internal/models"
 )
 
@@ -96,6 +98,11 @@ type ExamQuestionMappingDTO struct {
 	OrderIndex 		int						`json:"order_index" db:"order_index"`
 	QuestionData 	*models.Question 		`json:"question_data,omitempty"`
 	GroupData 		*models.QuestionGroup	`json:"group_data,omitempty"`
+}
+
+type ExamImportInputParams struct {
+	ExamId 		int 						`form:"exam_id" binding:"required"`
+	File 		multipart.FileHeader  		`form:"file" binding:"required,file_ext=xlsx,maxfile=100"`
 }
 
 type UpdateQuestionSingleInputParams struct {

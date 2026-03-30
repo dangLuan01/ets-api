@@ -2,6 +2,9 @@ package v1service
 
 import (
 	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"time"
@@ -13,7 +16,7 @@ import (
 	repositoryQuestion "github.com/dangLuan01/ets-api/internal/repository/question"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/doug-martin/goqu/v9"
-
+	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -614,8 +617,20 @@ func (rs *examService) UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInput
 	return rs.repo.UpdateQuestionGroup(params)
 }
 
-func (rs *examService) ImportExamQuestionFromExcel(examId int) error {
-	f, err := excelize.OpenFile("../../assets/Import.xlsx")
+func (rs *examService) ImportExamQuestionFromExcel(ctx *gin.Context, params v1dto.ExamImportInputParams) error {
+	exePath, _ := os.Getwd()
+	assetsPath := filepath.Join(exePath, "assets")
+
+	os.MkdirAll(assetsPath, 0755)
+
+	fileName := fmt.Sprintf("%s_%s.xlsx", params.File.Filename, time.Now().Format("20060102150405"))
+	dst := filepath.Join(assetsPath, fileName)
+
+	if err := ctx.SaveUploadedFile(&params.File, dst); err != nil {
+		return err
+	}
+
+	f, err := excelize.OpenFile(dst)
 	if err != nil {
 		return err
 	}
@@ -625,7 +640,7 @@ func (rs *examService) ImportExamQuestionFromExcel(examId int) error {
 	if err != nil {
 		return err
 	}
-	
+
 	getSafeCell := func(r []string, index int) string {
 		if index < len(r) { 
 			return r[index] 
@@ -645,18 +660,18 @@ func (rs *examService) ImportExamQuestionFromExcel(examId int) error {
 		partIdStr := getSafeCell(row, 1)
 		PartStr := getSafeCell(row, 2)
 		tempGroupId := getSafeCell(row, 3)
-		passageText := getSafeCell(row, 4)
-		questionText := getSafeCell(row, 5)
-		optionA := getSafeCell(row, 6)
-		optionB := getSafeCell(row, 7)
-		optionC := getSafeCell(row, 8)
-		optionD := getSafeCell(row, 9)
-		correctAnswer := getSafeCell(row, 10)
-		explanation := getSafeCell(row, 11)
-		transcript := getSafeCell(row, 12)
-		audioStartMsStr := getSafeCell(row, 13)
-		audioEndMsStr := getSafeCell(row, 14)
-		imageUrl := getSafeCell(row, 15)
+		imageUrl := getSafeCell(row, 4)
+		passageText := getSafeCell(row, 5)
+		questionText := getSafeCell(row, 6)
+		optionA := getSafeCell(row, 7)
+		optionB := getSafeCell(row, 8)
+		optionC := getSafeCell(row, 9)
+		optionD := getSafeCell(row, 10)
+		correctAnswer := getSafeCell(row, 11)
+		audioStartMsStr := getSafeCell(row, 12)
+		audioEndMsStr := getSafeCell(row, 13)
+		explanation := getSafeCell(row, 14)
+		transcript := getSafeCell(row, 15)
 
 		partId, _ := strconv.Atoi(partIdStr)
 		part, _ := strconv.Atoi(PartStr)
@@ -666,7 +681,7 @@ func (rs *examService) ImportExamQuestionFromExcel(examId int) error {
 
 		if tempGroupId == "" {
 			questionSingle := v1dto.QuestionParamsInput{
-				ExamId: int64(examId),
+				ExamId: int64(params.ExamId),
 				EntityType: "SINGLE",
 				PartId:	partId,
 				Part: part,
@@ -689,7 +704,7 @@ func (rs *examService) ImportExamQuestionFromExcel(examId int) error {
 				return err
 			}
 			questionMapping := v1dto.ExamQuestionMappingInput{
-				ExamId: int64(examId),
+				ExamId: int64(params.ExamId),
 				EntityType: "SINGLE",
 				EntityId: questionId,
 				OrderIndex: orderNo,
@@ -703,7 +718,7 @@ func (rs *examService) ImportExamQuestionFromExcel(examId int) error {
 		} else {
 			if _, exists := groupTracker[tempGroupId]; !exists {
 				newGroup := &v1dto.QuestionGroupParamsInput{
-					ExamId: int64(examId),
+					ExamId: int64(params.ExamId),
 					PartId: partId,
 					EntityType: "GROUP",
 					PassageText: &passageText,
@@ -766,7 +781,7 @@ func (rs *examService) ImportExamQuestionFromExcel(examId int) error {
 			}
 
 			paramsQuestionGroupMapping := v1dto.ExamQuestionMappingInput{
-				ExamId: int64(examId),
+				ExamId: int64(params.ExamId),
 				EntityType: "GROUP",
 				EntityId: groupId,
 				OrderIndex: group.SubQuestions[0].SubOrder,
@@ -779,6 +794,8 @@ func (rs *examService) ImportExamQuestionFromExcel(examId int) error {
 			}
 		}
 	}
+
+	os.Remove(dst)
 	
 	return  nil
 }

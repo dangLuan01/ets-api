@@ -3,6 +3,7 @@ package v1service
 import (
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
+	"github.com/gin-gonic/gin"
 )
 
 type ExamService interface {
@@ -21,5 +22,5 @@ type ExamService interface {
 	GetExamPart(examId int, partId int) (v1dto.ExamPart, error)
 	UpdateQuestionSingle(params v1dto.UpdateQuestionSingleInputParams) error
 	UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInputParams) error
-	ImportExamQuestionFromExcel(examId int) error
+	ImportExamQuestionFromExcel(ctx *gin.Context, params v1dto.ExamImportInputParams) error
 }

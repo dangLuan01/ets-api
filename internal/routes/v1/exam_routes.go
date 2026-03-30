@@ -35,6 +35,6 @@ func (tr *ExamRoutes) Register(r *gin.RouterGroup) {
 		exam.PUT("/questions/update", tr.handler.UpdateQuestionSingle)
 		exam.PUT("/question-groups/update", tr.handler.UpdateQuestionGroup)
 		//Import excel
-		exam.POST("/import/:id", tr.handler.ImportExamQuestionFromExcel)
+		exam.POST("/import", tr.handler.ImportExamQuestionFromExcel)
 	}
 }
