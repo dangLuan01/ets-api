@@ -13,6 +13,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type TreeNode[T any] interface {
+    GetID() int
+    GetParentID() *int
+    GetChildren() *[]T
+}
+
 func GetEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != ""{
 		return value
@@ -79,4 +85,34 @@ func LookupScaledScore(table []models.ScoreConversion, skillId int, raw int) int
         }
     }
     return 0
+}
+
+func BuildTree[T TreeNode[T]](flat []T) []T {
+    m := make(map[int]T)
+    var roots []T
+
+    // Map ID → Node
+    for i := range flat {
+        children := flat[i].GetChildren()
+        *children = []T{} // reset children
+        m[flat[i].GetID()] = flat[i]
+    }
+
+    // Build tree
+    for i := range flat {
+        node := flat[i]
+        parentID := node.GetParentID()
+
+        if parentID == nil {
+            roots = append(roots, node)
+            continue
+        }
+
+        if parent, ok := m[*parentID]; ok {
+            children := parent.GetChildren()
+            *children = append(*children, node)
+        }
+    }
+
+    return roots
 }
