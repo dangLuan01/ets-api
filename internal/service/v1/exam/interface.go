@@ -7,9 +7,11 @@ import (
 )
 
 type ExamService interface {
+	// --- SERVICE CLIENT ---
 	FindExamById(examId int) (models.Exam, error)
 	CalculateScoreExam(params v1dto.QuestionAnswerInputParams) (v1dto.DetailExamScore, error)
-	// --- SERVICE CHO ADMIN (CRUD EXAM) ---
+	GetFilterStructure() ([]*v1dto.FilterStructure, error)
+	// --- SERVICE ADMIN (CRUD EXAM) ---
 	GetAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64, error)
 	CreateExam(params v1dto.CreateExamInputParams) error
 	EditExamById(examId int) (models.ExamModel, error)

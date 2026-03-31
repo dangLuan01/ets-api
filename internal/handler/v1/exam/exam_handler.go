@@ -241,3 +241,14 @@ func (rh *ExamHandler) ImportExamQuestionFromExcel(ctx *gin.Context){
 
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
+
+func (eh *ExamHandler) GetFilterStructure(ctx *gin.Context) {
+	
+	filterStructre, err := eh.service.GetFilterStructure()
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+	
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", filterStructre)
+}

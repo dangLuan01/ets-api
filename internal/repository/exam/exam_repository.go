@@ -19,6 +19,7 @@ const (
 	TABLE_SCORE_CONVERSION		= "score_conversion_tables"
 	TABLE_USER_ATTEMPT			= "user_attempts"
 	TABLE_USER_ANSWERS			= "user_answers"
+	TABLE_CATEGORY				= "categories"
 )
 
 
@@ -458,4 +459,22 @@ func (rt *SqlExamRepository) UpdateQuestionGroup(params v1dto.UpdateQuestionGrou
 	}
 
 	return nil
+}
+
+func (er *SqlExamRepository) FindFilterStructure() ([]*v1dto.FilterStructure, error) {
+	var filterStructure []*v1dto.FilterStructure
+
+	ds := er.db.From(goqu.T(TABLE_CATEGORY)).
+		Where(
+			goqu.C("is_filterable").Eq(true),
+			goqu.C("status").Eq(true),
+		).
+		Order(goqu.C("priority").Asc())
+
+	err := ds.ScanStructs(&filterStructure)
+	if err != nil {
+		return nil, err
+	}
+
+	return filterStructure, nil
 }

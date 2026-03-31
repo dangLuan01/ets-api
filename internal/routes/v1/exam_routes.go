@@ -18,8 +18,11 @@ func NewExamRoutes(handler *v1handler.ExamHandler) *ExamRoutes {
 func (tr *ExamRoutes) Register(r *gin.RouterGroup) {
 	exam := r.Group("/exams")
 	{
+		//Route for client
 		exam.POST("/:id/full-test", tr.handler.FindExamById)
 		exam.POST("/calculate/score", tr.handler.CalculateScoreExam)
+		exam.GET("/filter-structure", tr.handler.GetFilterStructure)
+		
 		//ROUTE FOR CRUD EXAM (ADMIN)
 		exam.GET("/get-all", tr.handler.GetAllExams)
 		exam.POST("/create", tr.handler.CreateExam)
@@ -36,5 +39,7 @@ func (tr *ExamRoutes) Register(r *gin.RouterGroup) {
 		exam.PUT("/question-groups/update", tr.handler.UpdateQuestionGroup)
 		//Import excel
 		exam.POST("/import", tr.handler.ImportExamQuestionFromExcel)
+
+		
 	}
 }

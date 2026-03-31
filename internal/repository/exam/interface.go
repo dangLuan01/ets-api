@@ -7,6 +7,7 @@ import (
 )
 
 type ExamRepository interface {
+	// --- REPO CLIENT ---
 	FindExamById(examId int) (models.Exam, error)
 	FindExamQuestionMappingById(examId int) ([]models.ExamQuestionMapping, error)
 	FindQuesionByIds(singleIDs []int) ([]models.Question, error)
@@ -17,8 +18,8 @@ type ExamRepository interface {
 	GetCorrectAnswersWithSkillContext(examId int, ids []int) ([]v1dto.QuestionWithSkill, error)
 	GetScoreConversionTable(certId int) ([]models.ScoreConversion, error)
 	SaveAttemptWithAnswers(attempt models.UserAttempt, answers []models.UserAnswer) error
-
-	// --- REPO CHO ADMIN (CRUD EXAM) ---
+	FindFilterStructure()([]*v1dto.FilterStructure, error)
+	// --- REPO ADMIN (CRUD EXAM) ---
 	FindAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64, error)
 	CreateExam(exam v1dto.CreateExamInputParams) error
 	GetExamById(examId int) (models.ExamModel, error)

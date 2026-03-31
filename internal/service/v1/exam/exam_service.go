@@ -34,14 +34,14 @@ func NewExamService(repo repositoryExam.ExamRepository, repoPartDirection reposi
 	}
 }
 
-func (rs *examService) FindExamById(examId int) (models.Exam, error) {
+func (es *examService) FindExamById(examId int) (models.Exam, error) {
 
-	exam, err := rs.repo.FindExamById(examId)
+	exam, err := es.repo.FindExamById(examId)
 	if err != nil {
 		return models.Exam{}, err
 	}
 
-	sections, err := rs.repo.FindExamQuestionMappingById(examId)
+	sections, err := es.repo.FindExamQuestionMappingById(examId)
 	if err != nil {
 		return models.Exam{}, err
 	}
@@ -63,7 +63,7 @@ func (rs *examService) FindExamById(examId int) (models.Exam, error) {
 	groupMap 		:= make(map[int]*models.QuestionGroup)
 
 	directionMap 	:= make(map[int]models.Direction)
-	directions, err := rs.repoPartDirection.FindDirectionByExamId(examId)
+	directions, err := es.repoPartDirection.FindDirectionByExamId(examId)
 	if err == nil {
 		for i := range directions {
 			d := &directions[i]
@@ -79,7 +79,7 @@ func (rs *examService) FindExamById(examId int) (models.Exam, error) {
 
 	if len(singleIDs) > 0 {
 
-		questions, err := rs.repo.FindQuesionByIds(singleIDs)
+		questions, err := es.repo.FindQuesionByIds(singleIDs)
 		
 		if err != nil {
 			return models.Exam{}, err
@@ -102,7 +102,7 @@ func (rs *examService) FindExamById(examId int) (models.Exam, error) {
 
 	if len(groupIDs) > 0 {
 
-		groups, err := rs.repo.FindGroupQuestionByIds(groupIDs)
+		groups, err := es.repo.FindGroupQuestionByIds(groupIDs)
 		
 		if err != nil {
 			return models.Exam{}, err
@@ -113,7 +113,7 @@ func (rs *examService) FindExamById(examId int) (models.Exam, error) {
 			groupMap[g.Id] = &gCopy
 		}
 
-		subQuestions, err := rs.repo.FindSubQuesionByGroupIds(groupIDs)
+		subQuestions, err := es.repo.FindSubQuesionByGroupIds(groupIDs)
 
 		if err != nil { 
 			return models.Exam{}, err 
@@ -157,12 +157,12 @@ func (rs *examService) FindExamById(examId int) (models.Exam, error) {
 		}
 	}
 
-	skillsMater, err := rs.repo.FindSkillsByCertId(exam.CertificateId)
+	skillsMater, err := es.repo.FindSkillsByCertId(exam.CertificateId)
 	if err != nil {
 		return models.Exam{}, err
 	}
 
-	partsMaster, err := rs.repo.FindPartsByCertId(exam.CertificateId)
+	partsMaster, err := es.repo.FindPartsByCertId(exam.CertificateId)
 	if err != nil {
 		return models.Exam{}, err
 	}
@@ -249,7 +249,7 @@ func (rs *examService) FindExamById(examId int) (models.Exam, error) {
 	return exam, nil
 }
 
-func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams) (v1dto.DetailExamScore, error) {
+func (es *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams) (v1dto.DetailExamScore, error) {
 
 	questionIds 	:= make([]int, 0, len(params.Answers))
 	userAnswerMap 	:= make(map[int]string)
@@ -259,7 +259,7 @@ func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 		userAnswerMap[ans.QuestionId] = ans.SelectedAnswer
 	}
 
-	correctAnswer, err := rs.repo.GetCorrectAnswersWithSkillContext(params.ExamId, questionIds)
+	correctAnswer, err := es.repo.GetCorrectAnswersWithSkillContext(params.ExamId, questionIds)
 	if err != nil {
 		return v1dto.DetailExamScore{}, err
 	}
@@ -292,8 +292,8 @@ func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 		})
 	}
 	
-	exam, _ := rs.repo.FindExamById(params.ExamId)
-	conversionTable, _ := rs.repo.GetScoreConversionTable(exam.CertificateId)
+	exam, _ := es.repo.FindExamById(params.ExamId)
+	conversionTable, _ := es.repo.GetScoreConversionTable(exam.CertificateId)
 
 	finalSkillScores := make(map[int]int)
 	totalScore := 0
@@ -304,7 +304,7 @@ func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 		totalScore += scaled
 	}
 
-	err = rs.repo.SaveAttemptWithAnswers(models.UserAttempt{
+	err = es.repo.SaveAttemptWithAnswers(models.UserAttempt{
 		UserId: 1,
 		ExamId: params.ExamId,
 		StartTime: time.Now().Format(time.RFC3339),
@@ -324,19 +324,19 @@ func (rs *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 	}, nil
 }
 
-func (rs *examService) GetAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64, error) {
-	return rs.repo.FindAllExams(params)
+func (es *examService) GetAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64, error) {
+	return es.repo.FindAllExams(params)
 }
 
-func (rs *examService) CreateExam(params v1dto.CreateExamInputParams) error {
-	return rs.repo.CreateExam(params)
+func (es *examService) CreateExam(params v1dto.CreateExamInputParams) error {
+	return es.repo.CreateExam(params)
 }
 
-func (rs *examService) EditExamById(id int) (models.ExamModel, error) {
-	return rs.repo.GetExamById(id)
+func (es *examService) EditExamById(id int) (models.ExamModel, error) {
+	return es.repo.GetExamById(id)
 }
 
-func (rs *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
+func (es *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
 	updateData := goqu.Record{}
 	
 	if params.Description != nil {
@@ -361,24 +361,24 @@ func (rs *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
 	updateData["total_question"] = params.TotalQuestion
 	updateData["total_time"] = params.TotalTime
 
-	return rs.repo.UpdateExam(params.Id, updateData)
+	return es.repo.UpdateExam(params.Id, updateData)
 }
 
-func (rs *examService) CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error {
-	return rs.repoPartDirection.CreatePartDirection(params)
+func (es *examService) CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error {
+	return es.repoPartDirection.CreatePartDirection(params)
 }
 
-func (rs *examService) UpdatePartDirection(params v1dto.UpdatePartDirectionInputParams) error {
-	return rs.repoPartDirection.UpdatePartDirection(params)
+func (es *examService) UpdatePartDirection(params v1dto.UpdatePartDirectionInputParams) error {
+	return es.repoPartDirection.UpdatePartDirection(params)
 }
 
-func (rs *examService) GetExamStructure(examId int) (v1dto.ExamStructure, error) {
-	exam, err := rs.repo.FindExamById(examId)
+func (es *examService) GetExamStructure(examId int) (v1dto.ExamStructure, error) {
+	exam, err := es.repo.FindExamById(examId)
 	if err != nil {
 		return v1dto.ExamStructure{}, err
 	}
 
-	sections, err := rs.repo.FindExamQuestionMappingById(examId)
+	sections, err := es.repo.FindExamQuestionMappingById(examId)
 	if err != nil {
 		return v1dto.ExamStructure{}, err
 	}
@@ -396,7 +396,7 @@ func (rs *examService) GetExamStructure(examId int) (v1dto.ExamStructure, error)
 	}
 
 	directionMap 	:= make(map[int]models.Direction)
-	directions, err := rs.repoPartDirection.FindDirectionByExamId(examId)
+	directions, err := es.repoPartDirection.FindDirectionByExamId(examId)
 	if err == nil {
 		for i := range directions {
 			d := &directions[i]
@@ -404,12 +404,12 @@ func (rs *examService) GetExamStructure(examId int) (v1dto.ExamStructure, error)
 		}
 	}
 
-	skillsMater, err := rs.repo.FindSkillsByCertId(exam.CertificateId)
+	skillsMater, err := es.repo.FindSkillsByCertId(exam.CertificateId)
 	if err != nil {
 		return v1dto.ExamStructure{}, err
 	}
 
-	partsMaster, err := rs.repo.FindPartsByCertId(exam.CertificateId)
+	partsMaster, err := es.repo.FindPartsByCertId(exam.CertificateId)
 	if err != nil {
 		return v1dto.ExamStructure{}, err
 	}
@@ -486,10 +486,10 @@ func (rs *examService) GetExamStructure(examId int) (v1dto.ExamStructure, error)
 	}, nil
 }
 
-func (rs *examService) GetExamPart(examId int, partId int) (v1dto.ExamPart, error) {
+func (es *examService) GetExamPart(examId int, partId int) (v1dto.ExamPart, error) {
 	var directionMap models.Direction
 	
-	sections, err := rs.repo.FindExamQuestionMappingByPartId(examId, partId)
+	sections, err := es.repo.FindExamQuestionMappingByPartId(examId, partId)
 	if err != nil {
 		return v1dto.ExamPart{}, err
 	}
@@ -509,7 +509,7 @@ func (rs *examService) GetExamPart(examId int, partId int) (v1dto.ExamPart, erro
 	questionMap 	:= make(map[int]models.Question)
 	groupMap 		:= make(map[int]*models.QuestionGroup)
 	
-	direction, err := rs.repoPartDirection.FindDirectionByExamIdAndPartId(examId, partId)
+	direction, err := es.repoPartDirection.FindDirectionByExamIdAndPartId(examId, partId)
 	if err == nil {
 		d := &direction
 		if len(d.ExampleRaw) > 0 {
@@ -523,7 +523,7 @@ func (rs *examService) GetExamPart(examId int, partId int) (v1dto.ExamPart, erro
 
 	if len(singleIDs) > 0 {
 
-		questions, err := rs.repo.FindQuesionByIds(singleIDs)
+		questions, err := es.repo.FindQuesionByIds(singleIDs)
 		
 		if err != nil {
 			return v1dto.ExamPart{}, err
@@ -546,7 +546,7 @@ func (rs *examService) GetExamPart(examId int, partId int) (v1dto.ExamPart, erro
 
 	if len(groupIDs) > 0 {
 
-		groups, err := rs.repo.FindGroupQuestionByIds(groupIDs)
+		groups, err := es.repo.FindGroupQuestionByIds(groupIDs)
 		
 		if err != nil {
 			return v1dto.ExamPart{}, err
@@ -557,7 +557,7 @@ func (rs *examService) GetExamPart(examId int, partId int) (v1dto.ExamPart, erro
 			groupMap[g.Id] = &gCopy
 		}
 
-		subQuestions, err := rs.repo.FindSubQuesionByGroupIds(groupIDs)
+		subQuestions, err := es.repo.FindSubQuesionByGroupIds(groupIDs)
 
 		if err != nil { 
 			return v1dto.ExamPart{}, err 
@@ -609,15 +609,15 @@ func (rs *examService) GetExamPart(examId int, partId int) (v1dto.ExamPart, erro
 	}, nil
 }
 
-func (rs *examService) UpdateQuestionSingle(params v1dto.UpdateQuestionSingleInputParams) error {
-	return rs.repo.UpdateQuestionSingle(params)
+func (es *examService) UpdateQuestionSingle(params v1dto.UpdateQuestionSingleInputParams) error {
+	return es.repo.UpdateQuestionSingle(params)
 }
 
-func (rs *examService) UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInputParams) error {
-	return rs.repo.UpdateQuestionGroup(params)
+func (es *examService) UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInputParams) error {
+	return es.repo.UpdateQuestionGroup(params)
 }
 
-func (rs *examService) ImportExamQuestionFromExcel(ctx *gin.Context, params v1dto.ExamImportInputParams) error {
+func (es *examService) ImportExamQuestionFromExcel(ctx *gin.Context, params v1dto.ExamImportInputParams) error {
 	exePath, _ := os.Getwd()
 	assetsPath := filepath.Join(exePath, "assets")
 
@@ -699,7 +699,7 @@ func (rs *examService) ImportExamQuestionFromExcel(ctx *gin.Context, params v1dt
 				SubOrder: orderNo,
 			}
 			
-			questionId, err := rs.repoQuestion.CreateQuestion(questionSingle)
+			questionId, err := es.repoQuestion.CreateQuestion(questionSingle)
 			if err != nil {
 				return err
 			}
@@ -711,7 +711,7 @@ func (rs *examService) ImportExamQuestionFromExcel(ctx *gin.Context, params v1dt
 				PartId: partId,
 			}
 
-			err = rs.repoQuestion.CreateQuestionMapping(questionMapping)
+			err = es.repoQuestion.CreateQuestionMapping(questionMapping)
 			if err != nil {
 				return err
 			}
@@ -749,7 +749,7 @@ func (rs *examService) ImportExamQuestionFromExcel(ctx *gin.Context, params v1dt
 
 	if len(groupTracker) > 0 {
 		for _, group := range groupTracker {
-			groupId, err := rs.repoQuestion.CreateQuestionGroup(*group)
+			groupId, err := es.repoQuestion.CreateQuestionGroup(*group)
 			if err != nil {
 				return err
 			}
@@ -775,7 +775,7 @@ func (rs *examService) ImportExamQuestionFromExcel(ctx *gin.Context, params v1dt
 				})
 			}
 
-			err = rs.repoQuestion.CreateQuestions(paramsQuestion)
+			err = es.repoQuestion.CreateQuestions(paramsQuestion)
 			if err != nil {
 				return err
 			}
@@ -788,7 +788,7 @@ func (rs *examService) ImportExamQuestionFromExcel(ctx *gin.Context, params v1dt
 				PartId: group.PartId,
 			}
 
-			err = rs.repoQuestion.CreateQuestionGroupMapping(paramsQuestionGroupMapping)
+			err = es.repoQuestion.CreateQuestionGroupMapping(paramsQuestionGroupMapping)
 			if err != nil {
 				return err
 			}
@@ -798,4 +798,14 @@ func (rs *examService) ImportExamQuestionFromExcel(ctx *gin.Context, params v1dt
 	os.Remove(dst)
 	
 	return  nil
+}
+
+func (es *examService) GetFilterStructure() ([]*v1dto.FilterStructure, error) {
+
+	filterStructure, err := es.repo.FindFilterStructure()
+	if err != nil {
+		return nil, err
+	}
+	
+	return utils.BuildTree(filterStructure), nil
 }

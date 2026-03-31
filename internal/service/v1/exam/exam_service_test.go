@@ -112,6 +112,10 @@ func (m *mockExamRepo) UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInput
    return nil
 }
 
+func (m *mockExamRepo) FindFilterStructure() ([]*v1dto.FilterStructure, error) {
+    return nil, nil
+}
+
 func TestCalculateScoreExam_Success(t *testing.T) {
     repo := &mockExamRepo{}
     service := &examService{repo: repo}
