@@ -27,6 +27,17 @@ type PartMaster struct {
 	Status 			int 					`json:"status" db:"status"`
 }
 
+type Category struct {
+	Id 				int 					`json:"id" db:"id"`
+	ParentId 		*int 					`json:"parent_id" db:"parent_id"`
+	Name			string 					`json:"name" db:"name"`
+	Slug			*string					`json:"slug" db:"slug"`
+	Type			string					`json:"type" db:"type"`
+	Status 			int						`json:"status" db:"status"`
+	IsFilterable 	int 					`json:"is_filterable" db:"is_filterable"`
+	Priority 		int 					`json:"priority" db:"priority"`
+}
+
 // --- TẦNG RESPONSE (API JSON) ---
 
 type ExamModel struct {
@@ -34,10 +45,10 @@ type ExamModel struct {
 	CertificateId	int						`json:"cert_id" db:"cert_id"`
 	Title 			string 					`json:"title" db:"title"`
 	Year 			int 					`json:"year" db:"year"`
-	Category 		*string 				`json:"category" db:"category"`
+	CategoryIds 		[]int 				`json:"category_ids" db:"-"`
 	TotalTime 		int 					`json:"total_time" db:"total_time"`
 	TotalQuestion	int						`json:"total_question" db:"total_question"`
-	Description 	*string 				`json:"description" db:"description"`
+	Description 	*string 				`json:"description" sdb:"description"`
 	Thumbnail 		*string 				`json:"thumbnail" db:"thumbnail"`
 	AudioFullUrl 	*string					`json:"audio_full_url" db:"audio_full_url"`
 	Status 			int 					`json:"status" db:"status"`
@@ -50,7 +61,6 @@ type Exam struct {
 	CertCode		string					`json:"cert_code" db:"cert_code"`
 	Title 			string 					`json:"title" db:"title"`
 	Year 			int 					`json:"year" db:"year"`
-	Category 		*string 				`json:"category" db:"category"`
 	TotalTime 		int 					`json:"total_time" db:"total_time"`
 	TotalQuestion	int						`json:"total_question" db:"total_question"`
 	Description 	*string 				`json:"description" db:"description"`

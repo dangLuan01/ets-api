@@ -15,7 +15,6 @@ import (
 	repositoryPartDirection "github.com/dangLuan01/ets-api/internal/repository/part_direction"
 	repositoryQuestion "github.com/dangLuan01/ets-api/internal/repository/question"
 	"github.com/dangLuan01/ets-api/internal/utils"
-	"github.com/doug-martin/goqu/v9"
 	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
 )
@@ -337,31 +336,10 @@ func (es *examService) EditExamById(id int) (models.ExamModel, error) {
 }
 
 func (es *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
-	updateData := goqu.Record{}
 	
-	if params.Description != nil {
-		updateData["description"] = params.Description
-	}
-	if params.Thumbnail != nil {
-		updateData["thumbnail"] = params.Thumbnail
-	}
-	if params.Category != nil {
-		updateData["category"] = params.Category
-	}
-	if params.AudioFullUrl != nil {
-		updateData["audio_full_url"] = params.AudioFullUrl
-	}
-	if params.Status != nil {
-		updateData["status"] = params.Status
-	}
 	
-	updateData["title"] = params.Title
-	updateData["year"] = params.Year
-	updateData["cert_id"] = params.CertificateId
-	updateData["total_question"] = params.TotalQuestion
-	updateData["total_time"] = params.TotalTime
 
-	return es.repo.UpdateExam(params.Id, updateData)
+	return es.repo.UpdateExam(params.Id, params)
 }
 
 func (es *examService) CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error {

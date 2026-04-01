@@ -5,7 +5,6 @@ import (
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
-	"github.com/doug-martin/goqu/v9"
 )
 type mockExamRepo struct {
     saveCalled bool
@@ -92,7 +91,7 @@ func (m *mockExamRepo) GetExamById(examId int) (models.ExamModel, error) {
     return models.ExamModel{}, nil
 }
 
-func (m *mockExamRepo) UpdateExam(examId int, params goqu.Record) error {
+func (m *mockExamRepo) UpdateExam(examId int, params v1dto.UpdateExamInputParams) error {
     return nil
 }
 

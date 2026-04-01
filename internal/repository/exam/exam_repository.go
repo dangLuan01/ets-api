@@ -7,6 +7,7 @@ import (
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 )
 
 const (
@@ -45,7 +46,6 @@ func (rt *SqlExamRepository) FindExamById(examId int) (models.Exam, error) {
 		goqu.I("e.cert_id"),
 		goqu.I("e.title"),
 		goqu.I("e.year"),
-		goqu.I("e.category"),
 		goqu.I("e.total_time"),
 		goqu.I("e.total_question"),
 		goqu.I("e.description"),
@@ -337,14 +337,55 @@ func (rt *SqlExamRepository) FindAllExams(params v1dto.GetAllExamParams) ([]mode
 	return exams, totalRecords, nil
 }
 
-func (rt *SqlExamRepository) CreateExam(exam v1dto.CreateExamInputParams) error {
-	_, err := rt.db.Insert(TABLE_EXAM).Rows(exam).Executor().Exec()
-	return err
+func (rt *SqlExamRepository) CreateExam(params v1dto.CreateExamInputParams) error {
+
+	tx, err := rt.db.Begin()
+    if err != nil {
+        return err
+    }
+
+    // rollback
+    defer func() {
+        if err != nil {
+            _ = tx.Rollback()
+        }
+    }()
+
+	resp, err := tx.Insert(TABLE_EXAM).Rows(params).Executor().Exec()
+
+	if err != nil {
+		return err
+	}
+
+	examId, err := resp.LastInsertId()
+	if err != nil {
+		return err
+	}
+
+	if len(params.CategoryIds) > 0 {
+        rows := make([]goqu.Record, 0, len(params.CategoryIds))
+        for _, cateId := range params.CategoryIds {
+            rows = append(rows, goqu.Record{
+                "exam_id":     examId,
+                "category_id": cateId,
+            })
+        }
+
+        _, err = tx.Insert(TABLE_EXAM_CATEGORY_MAPPING).
+            Rows(rows).
+            Executor().
+            Exec()
+        if err != nil {
+            return err
+        }
+    }
+
+	return tx.Commit()
 }
 
 func (rt *SqlExamRepository) GetExamById(examId int) (models.ExamModel, error) {
 	var exam models.ExamModel
-	found, err := rt.db.From(TABLE_EXAM).
+	found, err := rt.db.From(goqu.T(TABLE_EXAM)).
 		Where(goqu.C("id").Eq(examId)).
 		ScanStruct(&exam)
 	if err != nil {
@@ -354,16 +395,97 @@ func (rt *SqlExamRepository) GetExamById(examId int) (models.ExamModel, error) {
 		return models.ExamModel{}, utils.NewError(string(utils.ErrCodeNotFound), "Not found exam.")
 	}
 
+	var categoryIds []int
+
+	if err = rt.db.From(TABLE_EXAM_CATEGORY_MAPPING).
+		Select(
+			goqu.C("category_id"),
+		).
+		Where(goqu.C("exam_id").Eq(examId)).ScanVals(&categoryIds) ; err != nil {
+			return models.ExamModel{}, err
+	}
+	
+	exam.CategoryIds = categoryIds
+
 	return exam, nil
 }
 
-func (rt *SqlExamRepository) UpdateExam(examId int, params goqu.Record) error {
-	_, err := rt.db.From(TABLE_EXAM).
-		Update().Set(params).
-		Where(goqu.C("id").Eq(examId)).
-		Executor().Exec()
-		
-	return err
+func (rt *SqlExamRepository) UpdateExam(examId int, params v1dto.UpdateExamInputParams) error {
+    tx, err := rt.db.Begin()
+    if err != nil {
+        return err
+    }
+
+    // rollback nếu có lỗi
+    defer func() {
+        if err != nil {
+            _ = tx.Rollback()
+        }
+    }()
+
+    updateData := goqu.Record{
+        "title":          params.Title,
+        "year":           params.Year,
+        "cert_id":        params.CertificateId,
+        "total_question": params.TotalQuestion,
+        "total_time":     params.TotalTime,
+    }
+
+    if params.Description != nil {
+        updateData["description"] = params.Description
+    }
+    if params.Thumbnail != nil {
+        updateData["thumbnail"] = params.Thumbnail
+    }
+    if params.AudioFullUrl != nil {
+        updateData["audio_full_url"] = params.AudioFullUrl
+    }
+    if params.Status != nil {
+        updateData["status"] = params.Status
+    }
+
+    // UPDATE exams
+    _, err = tx.From(TABLE_EXAM).
+        Update().
+        Set(updateData).
+        Where(goqu.C("id").Eq(examId)).
+        Executor().
+        Exec()
+    if err != nil {
+        return err
+    }
+
+    // DELETE categories
+    _, err = tx.From(TABLE_EXAM_CATEGORY_MAPPING).
+        Delete().
+        Where(goqu.C("exam_id").Eq(examId)).
+        Executor().
+        Exec()
+    if err != nil {
+        return err
+    }
+
+    // INSERT categories (batch insert)
+    if len(params.CategoryIds) > 0 {
+        rows := make([]goqu.Record, 0, len(params.CategoryIds))
+        for _, cateId := range params.CategoryIds {
+            rows = append(rows, goqu.Record{
+                "exam_id":     examId,
+                "category_id": cateId,
+            })
+        }
+
+        _, err = tx.Insert(TABLE_EXAM_CATEGORY_MAPPING).
+            Rows(rows).
+            Executor().
+            Exec()
+        if err != nil {
+            return err
+        }
+    }
+
+    // commit transaction
+    return tx.Commit()
 }
 
 func (rt *SqlExamRepository) FindExamQuestionMappingByPartId(examId int, partId int) ([]v1dto.ExamQuestionMappingDTO, error) {
@@ -483,38 +605,49 @@ func (er *SqlExamRepository) FindFilterStructure() ([]*v1dto.FilterStructure, er
 }
 
 func (er *SqlExamRepository) FindExamsByFilter(params v1dto.FilterExamParams) ([]v1dto.ExamDTO, int64, error) {
-
 	var exams []v1dto.ExamDTO
 	query := er.db.From(goqu.T(TABLE_EXAM).As("e")).
 		Select(
-			goqu.I("e.id"),
+			goqu.DISTINCT(goqu.I("e.id")).As("id"),
 			goqu.I("e.title"),
 			goqu.I("e.year"),
 			goqu.I("e.total_time"),
 			goqu.I("e.total_question"),
 			goqu.I("e.thumbnail"),
+			goqu.I("e.updated_at"),
 		).
 		Join(goqu.T(TABLE_EXAM_CATEGORY_MAPPING).As("ec"),
 		goqu.On(goqu.Ex{
 			"e.id":goqu.I("ec.exam_id"),
 		}))
 
+	filters := []exp.Expression{}
+
 	// Apply filters
 	if params.Search != nil {
-		query = query.Where(goqu.I("e.title").ILike(fmt.Sprintf("%%%s%%", *params.Search)))
+		filters = append(filters, goqu.I("e.title").ILike(fmt.Sprintf("%%%s%%", *params.Search)))
 	}
 
 	if params.CategoryId != nil {
-		query = query.Where(goqu.I("ec.category_id").Eq(params.CategoryId))
+		filters = append(filters, goqu.I("ec.category_id").Eq(params.CategoryId))
 	}
 
 	// Get total count
-	totalRecords, err := query.Count()
-	if err != nil {
-		return nil, 0, err
-	}
+	 var totalRecords int64
+    _, err := er.db.From(goqu.T(TABLE_EXAM_CATEGORY_MAPPING).As("ec")).
+        Join(
+            goqu.T(TABLE_EXAM).As("e"),
+            goqu.On(goqu.Ex{"e.id": goqu.I("ec.exam_id")}),
+        ).
+        Where(filters...).
+        Select(goqu.COUNT(goqu.DISTINCT(goqu.I("e.id")))).
+        ScanVal(&totalRecords)
+
+    if err != nil {
+        return nil, 0, err
+    }
 	
-	query = query.Offset((uint(params.Page) - 1) * uint(params.Limit)).
+	query = query.Where(filters...).Offset((uint(params.Page) - 1) * uint(params.Limit)).
 		Limit(uint(params.Limit)).
 		Order(goqu.I("e.updated_at").Desc())
 

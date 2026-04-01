@@ -85,6 +85,7 @@ func NewApplication(cfg *config.Config) (*Application, error) {
 		NewPartMasterModule(ctx),
 		NewQuestionModule(ctx),
 		NewMenuModule(ctx),
+		NewCategoryModule(ctx),
 		// NewAuthModule(ctx, tokenService, cacheRedisService, mailService, rabbitmqService),
 		// NewStreamingModule(ctx, cacheRedisService, storeS3Service),
 		// NewVideoModule(ctx, storeS3Service),

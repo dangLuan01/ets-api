@@ -47,7 +47,7 @@ type CreateExamInputParams struct {
 	TotalTime 		int 			`json:"total_time" db:"total_time" binding:"required"`
 	Description 	*string 		`json:"description" db:"description" binding:"omitempty"`
 	Thumbnail 		*string 		`json:"thumbnail" db:"thumbnail" binding:"omitempty"`
-	Category 		*string 		`json:"category" db:"category" binding:"omitempty"`
+	CategoryIds 		[]int 		`json:"category_ids" db:"-" binding:"required"`
 	AudioFullUrl 	*string			`json:"audio_full_url" db:"audio_full_url" binding:"omitempty"`
 }
 
@@ -60,7 +60,7 @@ type UpdateExamInputParams struct {
 	TotalTime 		int 			`json:"total_time" db:"total_time" binding:"required"`
 	Description 	*string 		`json:"description" db:"description"`
 	Thumbnail 		*string 		`json:"thumbnail" db:"thumbnail"`
-	Category 		*string 		`json:"category" db:"category"`
+	CategoryIds 	[]int 			`json:"category_ids" db:"-"`
 	AudioFullUrl 	*string			`json:"audio_full_url" db:"audio_full_url"`
 	Status 			*int 			`json:"status" db:"status" binding:"required,oneof=0 1"`
 }
@@ -153,6 +153,7 @@ type ExamDTO struct {
 	TotalTime 		int 					`json:"total_time" db:"total_time"`
 	TotalQuestion	int						`json:"total_question" db:"total_question"`
 	Thumbnail 		*string 				`json:"thumbnail" db:"thumbnail"`
+	UpdatedAt 		string 					`json:"-" db:"updated_at"`
 }
 
 func MapDetailExamScoreDTO(params DetailExamScore) *DetailExamScoreDTO {
