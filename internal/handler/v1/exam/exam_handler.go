@@ -252,3 +252,27 @@ func (eh *ExamHandler) GetFilterStructure(ctx *gin.Context) {
 	
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", filterStructre)
 }
+
+func (eh *ExamHandler) FilterExam(ctx *gin.Context) {
+	var params v1dto.FilterExamParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	if params.Page <= 0 {
+		params.Page = 1
+	}
+	
+	if params.Limit <= 0 {
+		params.Limit = 20
+	}
+
+	exams, totalRecords, err := eh.service.FilterExam(params)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, exams))
+}

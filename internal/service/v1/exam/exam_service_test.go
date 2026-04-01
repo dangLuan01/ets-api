@@ -116,6 +116,10 @@ func (m *mockExamRepo) FindFilterStructure() ([]*v1dto.FilterStructure, error) {
     return nil, nil
 }
 
+func (m *mockExamRepo) FindExamsByFilter(params v1dto.FilterExamParams) ([]v1dto.ExamDTO, int64, error) {
+    return nil, 0, nil
+}
+
 func TestCalculateScoreExam_Success(t *testing.T) {
     repo := &mockExamRepo{}
     service := &examService{repo: repo}

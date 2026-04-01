@@ -146,6 +146,15 @@ type UpdateQuestionGroupInputParams struct {
 	} `json:"sub_questions" binding:"required"`
 }
 
+type ExamDTO struct {
+	Id 				int 					`json:"id" db:"id"`
+	Title 			string 					`json:"title" db:"title"`
+	Year 			int 					`json:"year" db:"year"`
+	TotalTime 		int 					`json:"total_time" db:"total_time"`
+	TotalQuestion	int						`json:"total_question" db:"total_question"`
+	Thumbnail 		*string 				`json:"thumbnail" db:"thumbnail"`
+}
+
 func MapDetailExamScoreDTO(params DetailExamScore) *DetailExamScoreDTO {
 	rawScoreMap := make(map[string]int)
     scaledScoreMap := make(map[string]int)

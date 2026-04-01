@@ -22,7 +22,7 @@ func (tr *ExamRoutes) Register(r *gin.RouterGroup) {
 		exam.POST("/:id/full-test", tr.handler.FindExamById)
 		exam.POST("/calculate/score", tr.handler.CalculateScoreExam)
 		exam.GET("/filter-structure", tr.handler.GetFilterStructure)
-		
+		exam.POST("/filter", tr.handler.FilterExam)
 		//ROUTE FOR CRUD EXAM (ADMIN)
 		exam.GET("/get-all", tr.handler.GetAllExams)
 		exam.POST("/create", tr.handler.CreateExam)

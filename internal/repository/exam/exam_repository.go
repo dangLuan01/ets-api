@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/dangLuan01/ets-api/internal/utils"
@@ -8,18 +10,19 @@ import (
 )
 
 const (
-	TABLE_EXAM 					= "exams"
-	TABLE_CERTIFICATE 			= "certificates"
-	TABLE_EXAM_QUESTION_MAPPING = "exam_question_mappings"
-	TABLE_QUESTION_GROUP		= "question_groups"
-	TABLE_QUESTIONS 			= "questions"
-	TABLE_PART_DIRECTION		= "part_directions"
-	TABLE_SKILLS				= "skills"
-	TABLE_PART_MASTER			= "part_masters"
-	TABLE_SCORE_CONVERSION		= "score_conversion_tables"
-	TABLE_USER_ATTEMPT			= "user_attempts"
-	TABLE_USER_ANSWERS			= "user_answers"
-	TABLE_CATEGORY				= "categories"
+	TABLE_EXAM 						= "exams"
+	TABLE_CERTIFICATE 				= "certificates"
+	TABLE_EXAM_QUESTION_MAPPING 	= "exam_question_mappings"
+	TABLE_QUESTION_GROUP			= "question_groups"
+	TABLE_QUESTIONS 				= "questions"
+	TABLE_PART_DIRECTION			= "part_directions"
+	TABLE_SKILLS					= "skills"
+	TABLE_PART_MASTER				= "part_masters"
+	TABLE_SCORE_CONVERSION			= "score_conversion_tables"
+	TABLE_USER_ATTEMPT				= "user_attempts"
+	TABLE_USER_ANSWERS				= "user_answers"
+	TABLE_CATEGORY					= "categories"
+	TABLE_EXAM_CATEGORY_MAPPING		= "exam_category_mappings"
 )
 
 
@@ -477,4 +480,49 @@ func (er *SqlExamRepository) FindFilterStructure() ([]*v1dto.FilterStructure, er
 	}
 
 	return filterStructure, nil
+}
+
+func (er *SqlExamRepository) FindExamsByFilter(params v1dto.FilterExamParams) ([]v1dto.ExamDTO, int64, error) {
+
+	var exams []v1dto.ExamDTO
+	query := er.db.From(goqu.T(TABLE_EXAM).As("e")).
+		Select(
+			goqu.I("e.id"),
+			goqu.I("e.title"),
+			goqu.I("e.year"),
+			goqu.I("e.total_time"),
+			goqu.I("e.total_question"),
+			goqu.I("e.thumbnail"),
+		).
+		Join(goqu.T(TABLE_EXAM_CATEGORY_MAPPING).As("ec"),
+		goqu.On(goqu.Ex{
+			"e.id":goqu.I("ec.exam_id"),
+		}))
+
+	// Apply filters
+	if params.Search != nil {
+		query = query.Where(goqu.I("e.title").ILike(fmt.Sprintf("%%%s%%", *params.Search)))
+	}
+
+	if params.CategoryId != nil {
+		query = query.Where(goqu.I("ec.category_id").Eq(params.CategoryId))
+	}
+
+	// Get total count
+	totalRecords, err := query.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	query = query.Offset((uint(params.Page) - 1) * uint(params.Limit)).
+		Limit(uint(params.Limit)).
+		Order(goqu.I("e.updated_at").Desc())
+
+	// Execute query
+	err = query.ScanStructs(&exams)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return exams, totalRecords, nil
 }

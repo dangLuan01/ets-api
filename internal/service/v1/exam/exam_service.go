@@ -809,3 +809,7 @@ func (es *examService) GetFilterStructure() ([]*v1dto.FilterStructure, error) {
 	
 	return utils.BuildTree(filterStructure), nil
 }
+
+func (es *examService) FilterExam(params v1dto.FilterExamParams) ([]v1dto.ExamDTO, int64, error) {
+	return es.repo.FindExamsByFilter(params)
+}

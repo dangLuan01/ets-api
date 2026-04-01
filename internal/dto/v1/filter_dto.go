@@ -8,6 +8,13 @@ type FilterStructure struct {
 	Children	[]*FilterStructure `json:"children,omitempty" db:"-"`
 }
 
+type FilterExamParams struct {
+	Search		*string	`form:"search" binding:"omitempty"`
+	CategoryId	[]int	`form:"category_id" binding:"omitempty"`
+	Page		int32	`form:"page" binding:"required,min=1"`
+	Limit		int32	`form:"limit" binding:"required,max=50"`
+}
+
 func (m *FilterStructure) GetID() int {
     return m.Id
 }

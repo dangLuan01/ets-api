@@ -19,6 +19,7 @@ type ExamRepository interface {
 	GetScoreConversionTable(certId int) ([]models.ScoreConversion, error)
 	SaveAttemptWithAnswers(attempt models.UserAttempt, answers []models.UserAnswer) error
 	FindFilterStructure()([]*v1dto.FilterStructure, error)
+	FindExamsByFilter(params v1dto.FilterExamParams) ([]v1dto.ExamDTO, int64, error)
 	// --- REPO ADMIN (CRUD EXAM) ---
 	FindAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64, error)
 	CreateExam(exam v1dto.CreateExamInputParams) error
