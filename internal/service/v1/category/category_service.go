@@ -43,7 +43,7 @@ func (cs *categoryService) UpdateCategory(params v1dto.CategoryUpdateParams) err
 		updateData["slug"] 		= params.Slug
 	}
 	if params.ParentId != nil {
-		updateData["parent_id"] = params.Name
+		updateData["parent_id"] = params.ParentId
 	}
 	
 	return cs.repo.UpdateCategoryById(params.Id, updateData)

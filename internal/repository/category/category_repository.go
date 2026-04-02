@@ -30,7 +30,7 @@ func (cr *SqlCategoryRepository) GetAllCategory(params v1dto.GetAllCategoryParam
 		return nil, 0, err
 	}
 
-	if err:= ds.Offset((uint(params.Page) - 1) * uint(params.Limit)).Limit(uint(params.Limit)).ScanStructs(&category); err != nil {
+	if err:= ds.Offset((uint(params.Page) - 1) * uint(params.Limit)).Limit(uint(params.Limit)).Order(goqu.C("created_at").Desc()).ScanStructs(&category); err != nil {
 		return nil, 0, err
 	}
 	
