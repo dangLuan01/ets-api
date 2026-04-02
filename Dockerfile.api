@@ -1,5 +1,5 @@
 # Stage 1: Build binary
-FROM golang:1.25.5-alpine AS builder
+FROM golang:1.25.6-alpine AS builder
 
 # Cài thêm git nếu cần go mod có package từ github
 RUN apk add --no-cache git
