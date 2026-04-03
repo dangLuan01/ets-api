@@ -6,15 +6,15 @@ import (
 	repositoryPartDirection "github.com/dangLuan01/ets-api/internal/repository/part_direction"
 	repositoryQuestion "github.com/dangLuan01/ets-api/internal/repository/question"
 	"github.com/dangLuan01/ets-api/internal/routes"
-	v1routes "github.com/dangLuan01/ets-api/internal/routes/v1"
+	v1routes "github.com/dangLuan01/ets-api/internal/routes/v1/client"
 	v1service "github.com/dangLuan01/ets-api/internal/service/v1/exam"
 )
 
-type ExamModule struct {
+type ExamClientModule struct {
 	routes routes.Route
 }
 
-func NewExamModule(ctx *ModuleContext) *ExamModule {
+func NewExamClientModule(ctx *ModuleContext) *ExamClientModule {
 	partDirectionRepo := repositoryPartDirection.NewSqlPartDirectionRepository(ctx.DB)
 	questionRepository := repositoryQuestion.NewSqlQuestionRepository(ctx.DB)
 	examRepo := repositoryExam.NewSqlExamRepository(ctx.DB)
@@ -22,11 +22,11 @@ func NewExamModule(ctx *ModuleContext) *ExamModule {
 	examHandler := v1handler.NewExamHandler(examService)
 	examRoutes := v1routes.NewExamRoutes(examHandler)
 
-	return &ExamModule{
+	return &ExamClientModule{
 		routes: examRoutes,
 	}
 }
 
-func (e *ExamModule) Routes() routes.Route {
+func (e *ExamClientModule) Routes() routes.Route {
 	return e.routes
 }
