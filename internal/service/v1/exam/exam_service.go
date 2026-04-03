@@ -306,8 +306,8 @@ func (es *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 	err = es.repo.SaveAttemptWithAnswers(models.UserAttempt{
 		UserId: 1,
 		ExamId: params.ExamId,
-		StartTime: time.Now().Format(time.RFC3339),
-		EndTime: time.Now().Format(time.RFC3339),
+		StartTime: time.Now().Format(time.DateTime),
+		EndTime: time.Now().Format(time.DateTime),
 		TotalScore: totalScore,
 		ListeningScore: finalSkillScores[1],
 		ReadingScore: finalSkillScores[2],

@@ -40,7 +40,7 @@ var (
 )
 
 const (
-	AccessTokenTTL 	= 6 * time.Hour
+	AccessTokenTTL 	= 24 * time.Hour
 	RefreshTokenTTL = 3 * 24 * time.Hour
 )
 

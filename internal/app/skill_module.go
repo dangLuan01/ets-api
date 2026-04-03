@@ -2,9 +2,9 @@ package app
 
 import (
 	v1handler "github.com/dangLuan01/ets-api/internal/handler/v1/skill"
-	"github.com/dangLuan01/ets-api/internal/repository/skill"
+	repository "github.com/dangLuan01/ets-api/internal/repository/skill"
 	"github.com/dangLuan01/ets-api/internal/routes"
-	v1routes "github.com/dangLuan01/ets-api/internal/routes/v1"
+	v1routes "github.com/dangLuan01/ets-api/internal/routes/v1/admin"
 	v1service "github.com/dangLuan01/ets-api/internal/service/v1/skill"
 )
 
