@@ -3,7 +3,6 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/json"
 	"math/big"
 	"os"
 	"strconv"
@@ -66,16 +65,16 @@ func GenerateRandomInt(lenght int) (string, error) {
 	return string(number), nil
 }
 
-func GetUserLogged(ctx *gin.Context) (v1dto.UserPayload, error) {
-	var user v1dto.UserPayload
-	payload, _ := ctx.Get("data")
-	bytes, _ := json.Marshal(payload)
-	
-	if err := json.Unmarshal(bytes, &user); err != nil {
-		return v1dto.UserPayload{}, err
+func GetUserLogged(ctx *gin.Context) (v1dto.EncryptedPayload, bool) {
+	payload, exists := ctx.Get("data")
+	if !exists {
+		return v1dto.EncryptedPayload{}, false
+	}
+	if user, ok := payload.(*v1dto.EncryptedPayload); ok {
+		return *user, true
 	}
 
-	return user, nil
+	return v1dto.EncryptedPayload{}, false
 }
 
 func LookupScaledScore(table []models.ScoreConversion, skillId int, raw int) int {

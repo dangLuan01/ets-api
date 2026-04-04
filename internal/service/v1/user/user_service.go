@@ -5,7 +5,7 @@ import (
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
-	"github.com/dangLuan01/ets-api/internal/repository/user"
+	repository "github.com/dangLuan01/ets-api/internal/repository/user"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/gin-gonic/gin"
 
@@ -39,8 +39,8 @@ func (us *userService) GetAllUser()  ([]models.User, error) {
 
 func (us *userService) GetUserByUUID(ctx *gin.Context) (models.User, error) {
 	
-	userLogged, err := utils.GetUserLogged(ctx)
-	if err != nil {
+	userLogged, exists := utils.GetUserLogged(ctx)
+	if !exists {
 		return models.User{}, utils.NewError(string(utils.ErrCodeInternal), "Failed get user logged.")
 	}
 
@@ -55,7 +55,7 @@ func (us *userService) GetUserByUUID(ctx *gin.Context) (models.User, error) {
 
 func (us *userService) CreateUser(user models.User) (models.User, error) {
 	user.Email = utils.NormailizeString(user.Email)
-	if user, err := us.repo.FindByEmail(user.Email); err != nil {
+	if user, existed, err := us.repo.FindByEmail(user.Email); err == nil && existed {
 		
 		return models.User{}, utils.NewError(
 			string(utils.ErrCodeConflict), 
@@ -63,7 +63,7 @@ func (us *userService) CreateUser(user models.User) (models.User, error) {
 		)
 	}
 	user.UUID = uuid.New()
-	hashPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
 	if err != nil {
 
 		return models.User{}, utils.WrapError(
@@ -72,7 +72,7 @@ func (us *userService) CreateUser(user models.User) (models.User, error) {
 			err,
 		)
 	}
-	user.Password = string(hashPassword)
+	user.PasswordHash = string(hashPassword)
 	if err := us.repo.Create(user); err != nil {
 
 		return models.User{}, utils.WrapError(
@@ -86,7 +86,7 @@ func (us *userService) CreateUser(user models.User) (models.User, error) {
 }
 func (us *userService) UpdateUser(uuid uuid.UUID, user models.User) (models.User, error) {
 	user.Email = utils.NormailizeString(user.Email)
-	if u, err := us.repo.FindByEmail(user.Email); err != nil && u.UUID != uuid{
+	if u, _, err := us.repo.FindByEmail(user.Email); err != nil && u.UUID != uuid{
 		
 		return models.User{}, utils.NewError(
 			string(utils.ErrCodeConflict), 
@@ -101,16 +101,16 @@ func (us *userService) UpdateUser(uuid uuid.UUID, user models.User) (models.User
 	currencyUser.UserName = user.UserName
 	currencyUser.Email = user.Email
 
-	if user.Password != "" {
-		hashPassword, err :=bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if user.PasswordHash != "" {
+		hashPassword, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
 		if err != nil {
 			return models.User{}, utils.WrapError(string(utils.ErrCodeInternal), "Faile hash pass", err)
 		}
-		currencyUser.Password = string(hashPassword)
+		currencyUser.PasswordHash = string(hashPassword)
 		
 	}
-	if user.Level != 0 {
-		currencyUser.Level = user.Level	
+	if user.Role != 0 {
+		currencyUser.Role = user.Role
 	}
 	
 	if user.Status != 0 {
@@ -131,24 +131,10 @@ func (us *userService) DeleteUser(uuid uuid.UUID) error {
 	return nil
 }
 
-func (us *userService) CheckStatus(ctx *gin.Context, uuid string) error {
-	
-	user, err := us.repo.FindBYUUID(uuid)
-	if err != nil {
-		return utils.NewError(string(utils.ErrCodeInternal), "Error fetch user.")
-	}
-	
-	if user.UploadCount == 0 {
-		return utils.NewError(string(utils.ErrCodeNotFound), "Bạn đã hết lượt upload. Vui lòng đăng ký thành viên để upload không giới hạn.")
-	}
-
-	return nil
-}
-
 func (us *userService) ChangePassword(ctx *gin.Context, params v1dto.ChangerPasswordParams) error {
 	
-	user, err := utils.GetUserLogged(ctx)
-	if err != nil {
+	user, exists := utils.GetUserLogged(ctx)
+	if !exists {
 		return utils.NewError(string(utils.ErrCodeInternal), "Failed get user login.")
 	}
 
@@ -162,13 +148,4 @@ func (us *userService) ChangePassword(ctx *gin.Context, params v1dto.ChangerPass
 	}
 
 	return nil
-}
-
-func (us *userService) UpdateCountUpload(uuid string) error {
-
-	if err := us.repo.UpdateCountUpload(uuid); err != nil {
-		return utils.WrapError(string(utils.ErrCodeInternal), "Falied update count upload", err)
-	}
-
-	return  nil
 }

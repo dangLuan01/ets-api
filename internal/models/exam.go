@@ -156,7 +156,7 @@ type UserAnswer struct {
 }
 
 type UserAttempt struct {
-	UserId 			int						`db:"user_id"`
+	UserId 			string					`db:"user_id"`
 	ExamId 			int						`db:"exam_id"`
 	StartTime 		string					`db:"start_time"`
 	EndTime			string					`db:"end_time"`

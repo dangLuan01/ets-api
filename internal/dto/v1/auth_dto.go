@@ -30,15 +30,19 @@ type RequestOTPInput struct {
 	Code string `json:"code" binding:"required,max=6"`
 }
 
+type EncryptedPayload struct {
+	UserUUID 	uuid.UUID 	`json:"user_uuid"`
+	Email 		string 		`json:"email"`
+	Role 		int8 		`json:"role"`
+}
+
 func RegisterDTOToModel(uuid uuid.UUID, user RegisterInput) models.User {
 	return models.User{
 		UUID: uuid,
 		UserName: user.UserName,
 		Email: user.Email,
-		Password: user.Password,
-		UploadCount: 15,
-		Is_Member: 0,
-		Level: 2,
+		PasswordHash: user.Password,
+		Role: 2,
 		Status: 1,
 	}
 }

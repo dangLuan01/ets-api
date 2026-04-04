@@ -10,19 +10,19 @@ import (
 type UserDTO struct {
 	UserName   		string 		`json:"user_name"`
 	Email  			string 		`json:"email"`
-	Level  			string 		`json:"level"`
+	Role  			string 		`json:"role"`
 	Status 			string 		`json:"status"`
 	Expried_date 	*time.Time	`json:"expried_date"`
 	Is_Member		int			`json:"is_member"`
 }
 
 type CreateUserInput struct {
-	UUID   uuid.UUID 	`json:"uuid"`
-	Name     string 	`json:"name" binding:"required"`
-	Email    string 	`json:"email" binding:"required,email"`
-	Password string 	`json:"password" binding:"required,min=8"`
-	Status   int8   	`json:"status" binding:"required,oneof=1 2"`
-	Level    int8   	`json:"level" binding:"required,oneof=1 2"`
+	UUID   		uuid.UUID 	`json:"uuid"`
+	Name     	string 		`json:"name" binding:"required"`
+	Email    	string 		`json:"email" binding:"required,email"`
+	Password 	string 		`json:"password" binding:"required,min=8"`
+	Status   	int8   		`json:"status" binding:"required,oneof=1 2"`
+	Role    	int8   		`json:"role" binding:"required,oneof=1 2"`
 }
 
 type UpdateUserInput struct {
@@ -31,7 +31,7 @@ type UpdateUserInput struct {
 	Email    string 	`json:"email" binding:"required,email"`
 	Password string 	`json:"password" binding:"omitempty,min=8"`
 	Status   int8   	`json:"status" binding:"omitempty,oneof=1 2"`
-	Level    int8   	`json:"level" binding:"omitempty,oneof=1 2"`
+	Role    int8   	`json:"role" binding:"omitempty,oneof=1 2"`
 }
 
 type ChangerPasswordParams struct {
@@ -48,9 +48,9 @@ func (input * CreateUserInput) MapCreateInputToModel() models.User {
 	return models.User{
 		UserName: input.Name,
 		Email: input.Email,
-		Password: input.Password,
+		PasswordHash: input.Password,
 		Status: input.Status,
-		Level: input.Level,
+		Role: input.Role,
 	}
 }
 
@@ -58,9 +58,9 @@ func (input * UpdateUserInput) MapUpdateInputToModel() models.User {
 	return models.User{
 		UserName: input.Name,
 		Email: input.Email,
-		Password: input.Password,
+		PasswordHash: input.Password,
 		Status: input.Status,
-		Level: input.Level,
+		Role: input.Role,
 	}
 }
 
@@ -68,10 +68,8 @@ func MapUserDTO(user models.User) *UserDTO {
 	return &UserDTO{
 		UserName: user.UserName,
 		Email: user.Email,
-		Level: formatLevel(user.Level),
+		Role: formatLevel(user.Role),
 		Status: formatStatus(user.Status),
-		Expried_date: user.Expried_date,
-		Is_Member: user.Is_Member,
 	}
 }
 
@@ -83,8 +81,8 @@ func MapUsersDTO(users []models.User) []UserDTO {
 	return dtos
 }
 
-func formatLevel(level int8) string {
-	switch level {
+func formatLevel(role int8) string {
+	switch role {
 	case 1:
 		return "Admin"
 	default :

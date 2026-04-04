@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"time"
 
+	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/dangLuan01/ets-api/pkg/cache"
@@ -19,12 +20,6 @@ type JWTService struct {
 
 type Claim struct {
 	jwt.RegisteredClaims
-}
-
-type EncryptedPayload struct {
-	UserUUID 	uuid.UUID `json:"user_uuid"`
-	Email 		string `json:"email"`
-	Role 		int8 `json:"role"`
 }
 
 type RefreshToken struct {
@@ -51,10 +46,10 @@ func NewJWTService(cache cache.RedisCacheService) TokenService {
 }
 
 func (js *JWTService) GenerateAccessToken(user models.User) (string, error) {
-	payload := &EncryptedPayload{
+	payload := &v1dto.EncryptedPayload{
 		UserUUID: 	user.UUID,
 		Email: 		user.Email,
-		Role: 		user.Level,
+		Role: 		user.Role,
 	}
 
 	rawData, err := json.Marshal(payload)
@@ -97,7 +92,7 @@ func (js *JWTService) ParseToken(tokenString string) (*jwt.Token, jwt.MapClaims,
 	return token, claim, nil
 }
 
-func (js *JWTService) DecryptAccessTokenPayload(tokenString string) (*EncryptedPayload, error) {
+func (js *JWTService) DecryptAccessTokenPayload(tokenString string) (*v1dto.EncryptedPayload, error) {
 	_,claims, err := js.ParseToken(tokenString)
 	if err != nil {
 		return nil, err
@@ -113,7 +108,7 @@ func (js *JWTService) DecryptAccessTokenPayload(tokenString string) (*EncryptedP
 		return nil, utils.WrapError(string(utils.ErrCodeBadRequest), "Cannot decode data",err)
 	}
 
-	var payload EncryptedPayload
+	var payload v1dto.EncryptedPayload
 
 	if err := json.Unmarshal(decryptedBytes, &payload); err != nil {
 		return nil, utils.WrapError(string(utils.ErrCodeBadRequest), "Invalid data format",err)
