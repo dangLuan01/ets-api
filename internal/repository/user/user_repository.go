@@ -3,7 +3,6 @@ package repository
 import (
 	"fmt"
 	"slices"
-	"time"
 
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/doug-martin/goqu/v9"
@@ -29,7 +28,7 @@ func (ur *SqlUserRepository) FindAll() ([]models.User, error){
 		goqu.I("uuid"),
 		goqu.I("username"),
 		goqu.I("email"),
-		goqu.I("level"),
+		goqu.I("role"),
 		goqu.I("status"),
 	)
 	var users []models.User
@@ -49,10 +48,7 @@ func (ur *SqlUserRepository) FindBYUUID(uuid string) (models.User, error) {
 		goqu.I("uuid"),
 		goqu.I("username"),
 		goqu.I("email"),
-		goqu.I("level"),
-		goqu.I("is_member"),
-		goqu.I("upload_count"),
-		goqu.I("expried_date"),
+		goqu.I("role"),
 		goqu.I("status"),
 	)
 	var user models.User
@@ -94,7 +90,7 @@ func (ur *SqlUserRepository) Delete(uuid uuid.UUID) error {
 
 	return fmt.Errorf("user not found")
 }
-func (ur *SqlUserRepository) FindByEmail(email string) (models.User, error) {
+func (ur *SqlUserRepository) FindByEmail(email string) (models.User, bool, error) {
 	
 	ds := ur.db.From(goqu.T("users")).Where(
 		goqu.C("email").Eq(email),
@@ -103,35 +99,14 @@ func (ur *SqlUserRepository) FindByEmail(email string) (models.User, error) {
     var user models.User
     found, err := ds.ScanStruct(&user)
 	if err != nil {
-		return models.User{}, err
+		return models.User{}, false, err
 	}
 	
-	if found {
-		return user, nil
+	if !found {
+		return models.User{}, false, nil
 	}
 
-	return models.User{}, err
-}
-
-func (ur *SqlUserRepository) UpdateMember(uuid string, is_member int, expriedDate time.Time) error {
-	
-	_, err := ur.db.Update(goqu.T("users")).
-		Set(
-			goqu.Record{
-				"is_member": is_member,
-				"expried_date": expriedDate,
-				"upload_count": 9999,
-			},
-		).
-		Where(
-			goqu.C("uuid").Eq(uuid),
-		).Executor().Exec()
-
-	if err != nil {
-		return err
-	}
-	
-	return nil
+	return user, true, err
 }
 
 func (ur *SqlUserRepository) UpdatePassword(uuid, password string) error {
@@ -143,30 +118,5 @@ func (ur *SqlUserRepository) UpdatePassword(uuid, password string) error {
 		return err	
 	}
 
-	return nil
-}
-
-func (ur *SqlUserRepository) UpdateCountUpload(uuid string) error {
-
-	user , err := ur.FindBYUUID(uuid)
-	if err != nil {
-		return err
-	}
-
-	uploadCountAmount := user.UploadCount - 1
-	if uploadCountAmount < 0 {
-		uploadCountAmount = 0
-	}
-
-	_, err = ur.db.Update(goqu.T("users")).
-		Set(goqu.Record{
-			"upload_count": uploadCountAmount,
-		}).
-		Where(goqu.C("uuid").Eq(uuid)).Executor().Exec()
-	
-	if err != nil {
-		return err
-	}
-	
 	return nil
 }

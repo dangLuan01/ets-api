@@ -118,21 +118,6 @@ func (uh *UserHandler) DeleteUser(ctx *gin.Context)  {
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
 
-func (uh *UserHandler) CheckStatus(ctx *gin.Context) {
-	var param CheckStatusParams
-	if err := ctx.ShouldBindBodyWithJSON(&param); err != nil {
-		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
-		return
-	}
-
-	if err := uh.service.CheckStatus(ctx, param.Uuid); err != nil {
-		utils.ResponseError(ctx , err)
-		return
-	}
-
-	utils.ResponseStatus(ctx, http.StatusOK)
-}
-
 func (uh *UserHandler) ChangePassword(ctx *gin.Context) {
 	var params v1dto.ChangerPasswordParams
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
@@ -142,21 +127,6 @@ func (uh *UserHandler) ChangePassword(ctx *gin.Context) {
 
 	if err := uh.service.ChangePassword(ctx, params); err != nil {
 		utils.ResponseError(ctx, err)
-		return
-	}
-
-	utils.ResponseStatus(ctx, http.StatusNoContent)
-}
-
-func (uh *UserHandler) UpdateCountUpload(ctx *gin.Context)  {
-	var params GetUserByUUID
-	if err := ctx.ShouldBindUri(&params); err != nil {
-		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
-		return
-	}
-
-	if err := uh.service.UpdateCountUpload(params.Uuid); err != nil {
-		utils.ResponseError(ctx ,err)
 		return
 	}
 

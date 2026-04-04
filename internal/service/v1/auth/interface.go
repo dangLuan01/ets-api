@@ -10,5 +10,4 @@ type AuthService interface {
 	Logout(ctx *gin.Context, refreshTokenString string) error
 	RefreshToken(ctx *gin.Context, token string) (string, string, int, error)
 	Register(ctx *gin.Context, input v1dto.RegisterInput) error
-	RegisterOTP(ctx *gin.Context, code string) error
 }

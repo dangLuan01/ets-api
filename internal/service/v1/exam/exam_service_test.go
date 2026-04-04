@@ -5,6 +5,7 @@ import (
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
+	"github.com/gin-gonic/gin"
 )
 type mockExamRepo struct {
     saveCalled bool
@@ -132,7 +133,7 @@ func TestCalculateScoreExam_Success(t *testing.T) {
         },
     }
 
-    result, err := service.CalculateScoreExam(params)
+    result, err := service.CalculateScoreExam(&gin.Context{}, params)
     if err != nil {
         t.Fatalf("unexpected error: %v", err)
     }

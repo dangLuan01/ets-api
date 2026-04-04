@@ -248,7 +248,7 @@ func (es *examService) FindExamById(examId int) (models.Exam, error) {
 	return exam, nil
 }
 
-func (es *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams) (v1dto.DetailExamScore, error) {
+func (es *examService) CalculateScoreExam(ctx *gin.Context, params v1dto.QuestionAnswerInputParams) (v1dto.DetailExamScore, error) {
 
 	questionIds 	:= make([]int, 0, len(params.Answers))
 	userAnswerMap 	:= make(map[int]string)
@@ -303,17 +303,19 @@ func (es *examService) CalculateScoreExam(params v1dto.QuestionAnswerInputParams
 		totalScore += scaled
 	}
 
-	err = es.repo.SaveAttemptWithAnswers(models.UserAttempt{
-		UserId: 1,
-		ExamId: params.ExamId,
-		StartTime: time.Now().Format(time.DateTime),
-		EndTime: time.Now().Format(time.DateTime),
-		TotalScore: totalScore,
-		ListeningScore: finalSkillScores[1],
-		ReadingScore: finalSkillScores[2],
-	}, detailsAnswers)
-	if err != nil {
-		return v1dto.DetailExamScore{}, err
+	if userLoged, exists := utils.GetUserLogged(ctx); exists {
+	 
+		if err = es.repo.SaveAttemptWithAnswers(models.UserAttempt{
+			UserId: userLoged.UserUUID.String(),
+			ExamId: params.ExamId,
+			StartTime: time.Now().Format(time.DateTime),
+			EndTime: time.Now().Format(time.DateTime),
+			TotalScore: totalScore,
+			ListeningScore: finalSkillScores[1],
+			ReadingScore: finalSkillScores[2],
+		}, detailsAnswers); err != nil {
+			return v1dto.DetailExamScore{}, err
+		}
 	}
 
 	return v1dto.DetailExamScore{

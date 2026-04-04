@@ -13,7 +13,5 @@ type UserService interface {
 	CreateUser(user models.User) (models.User, error)
 	UpdateUser(uuid uuid.UUID, user models.User) (models.User, error)
 	DeleteUser(uuid uuid.UUID) error
-	CheckStatus(ctx *gin.Context, uuid string) error
 	ChangePassword(ctx *gin.Context, params v1dto.ChangerPasswordParams) error
-	UpdateCountUpload(uuid string) error
 }

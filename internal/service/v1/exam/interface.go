@@ -9,7 +9,7 @@ import (
 type ExamService interface {
 	// --- SERVICE CLIENT ---
 	FindExamById(examId int) (models.Exam, error)
-	CalculateScoreExam(params v1dto.QuestionAnswerInputParams) (v1dto.DetailExamScore, error)
+	CalculateScoreExam(ctx *gin.Context, params v1dto.QuestionAnswerInputParams) (v1dto.DetailExamScore, error)
 	GetFilterStructure() ([]*v1dto.FilterStructure, error)
 	FilterExam(params v1dto.FilterExamParams) ([]v1dto.ExamDTO, int64, error)
 	// --- SERVICE ADMIN (CRUD EXAM) ---

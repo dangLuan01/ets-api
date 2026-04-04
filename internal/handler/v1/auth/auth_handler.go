@@ -95,18 +95,3 @@ func (ah *AuthHandler) Register(ctx *gin.Context) {
 
 	utils.ResponseStatus(ctx, http.StatusOK)
 }
-
-func (ah *AuthHandler) RegisterOTP(ctx *gin.Context) {
-	var input v1dto.RequestOTPInput
-	if err := ctx.ShouldBindJSON(&input); err != nil {
-		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
-		return
-	}
-
-	if err := ah.authService.RegisterOTP(ctx, input.Code); err != nil {
-		utils.ResponseError(ctx, err)
-		return
-	}
-
-	utils.ResponseStatus(ctx, http.StatusOK)
-}

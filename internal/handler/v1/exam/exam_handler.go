@@ -52,7 +52,7 @@ func (rh *ExamHandler) CalculateScoreExam(ctx *gin.Context) {
 		return
 	}
 
-	data, err := rh.service.CalculateScoreExam(params)
+	data, err := rh.service.CalculateScoreExam(ctx, params)
 
 	if err != nil {
 		utils.ResponseError(ctx, err)
