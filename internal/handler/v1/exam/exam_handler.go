@@ -29,14 +29,14 @@ func NewExamHandler(service v1service.ExamService) *ExamHandler {
 	}
 }
 
-func (rh *ExamHandler) FindExamById(ctx *gin.Context) {
+func (eh *ExamHandler) FindExamById(ctx *gin.Context) {
 	var params GetIdExamParams
 	if err := ctx.ShouldBindUri(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	exam, err := rh.service.FindExamById(params.Id)
+	exam, err := eh.service.FindExamById(params.Id)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
@@ -45,14 +45,14 @@ func (rh *ExamHandler) FindExamById(ctx *gin.Context) {
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", exam)
 }
 
-func (rh *ExamHandler) CalculateScoreExam(ctx *gin.Context) {
+func (eh *ExamHandler) CalculateScoreExam(ctx *gin.Context) {
 	var params v1dto.QuestionAnswerInputParams
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	data, err := rh.service.CalculateScoreExam(ctx, params)
+	data, err := eh.service.CalculateScoreExam(ctx, params)
 
 	if err != nil {
 		utils.ResponseError(ctx, err)
@@ -62,9 +62,33 @@ func (rh *ExamHandler) CalculateScoreExam(ctx *gin.Context) {
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", v1dto.MapDetailExamScoreDTO(data))
 }
 
+func (eh *ExamHandler) GetFeatured(ctx *gin.Context) {
+	var params v1dto.ExamFeaturedParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	if params.Page <= 0 {
+		params.Page = 1
+	}
+	
+	if params.Limit <= 0 {
+		params.Limit = 20
+	}
+
+	exams, totalRecords, err := eh.service.GetFeaturedExams(params)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, exams))
+}
+
 // --- HANDLER CHO ADMIN (CRUD EXAM) ---
 
-func (rh *ExamHandler) GetAllExams(ctx *gin.Context){
+func (eh *ExamHandler) GetAllExams(ctx *gin.Context){
 	var params v1dto.GetAllExamParams
 	if err := ctx.ShouldBindQuery(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
@@ -78,7 +102,7 @@ func (rh *ExamHandler) GetAllExams(ctx *gin.Context){
 		params.Limit = 20
 	}
 
-	exams, totalRecords, err := rh.service.GetAllExams(params)
+	exams, totalRecords, err := eh.service.GetAllExams(params)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
@@ -89,14 +113,14 @@ func (rh *ExamHandler) GetAllExams(ctx *gin.Context){
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", paginationResponse)
 }
 
-func (rh *ExamHandler) CreateExam(ctx *gin.Context){
+func (eh *ExamHandler) CreateExam(ctx *gin.Context){
 	var params v1dto.CreateExamInputParams
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	if err := rh.service.CreateExam(params); err != nil {
+	if err := eh.service.CreateExam(params); err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
@@ -104,14 +128,14 @@ func (rh *ExamHandler) CreateExam(ctx *gin.Context){
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
 
-func (rh *ExamHandler) EditExam(ctx *gin.Context){
+func (eh *ExamHandler) EditExam(ctx *gin.Context){
 	var params GetIdExamParams
 	if err := ctx.ShouldBindUri(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	exam, err := rh.service.EditExamById(params.Id)
+	exam, err := eh.service.EditExamById(params.Id)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
@@ -120,14 +144,14 @@ func (rh *ExamHandler) EditExam(ctx *gin.Context){
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", exam)
 }
 
-func (rh *ExamHandler) UpdateExam(ctx *gin.Context){
+func (eh *ExamHandler) UpdateExam(ctx *gin.Context){
 	var params v1dto.UpdateExamInputParams
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 	
-	if err := rh.service.UpdateExam(params); err != nil {
+	if err := eh.service.UpdateExam(params); err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
@@ -135,14 +159,14 @@ func (rh *ExamHandler) UpdateExam(ctx *gin.Context){
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
 
-func (rh *ExamHandler) CreatePartDirection(ctx *gin.Context){ 
+func (eh *ExamHandler) CreatePartDirection(ctx *gin.Context){ 
 	var params v1dto.CreatePartDirectionInputParams
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	if err := rh.service.CreatePartDirection(params); err != nil {
+	if err := eh.service.CreatePartDirection(params); err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
@@ -150,14 +174,14 @@ func (rh *ExamHandler) CreatePartDirection(ctx *gin.Context){
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
 
-func (rh *ExamHandler) GetExamStructure(ctx *gin.Context){
+func (eh *ExamHandler) GetExamStructure(ctx *gin.Context){
 	var params GetIdExamParams
 	if err := ctx.ShouldBindUri(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	examStructure, err := rh.service.GetExamStructure(params.Id)
+	examStructure, err := eh.service.GetExamStructure(params.Id)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
@@ -166,14 +190,14 @@ func (rh *ExamHandler) GetExamStructure(ctx *gin.Context){
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", examStructure)
 }
 
-func (rh *ExamHandler) GetExamPart(ctx *gin.Context){
+func (eh *ExamHandler) GetExamPart(ctx *gin.Context){
 	var params GetExamPartParams
 	if err := ctx.ShouldBindUri(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	examPart, err := rh.service.GetExamPart(params.ExamId, params.PartId)
+	examPart, err := eh.service.GetExamPart(params.ExamId, params.PartId)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
@@ -182,14 +206,14 @@ func (rh *ExamHandler) GetExamPart(ctx *gin.Context){
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", examPart)
 }
 
-func (rh *ExamHandler) UpdateQuestionSingle(ctx *gin.Context){
+func (eh *ExamHandler) UpdateQuestionSingle(ctx *gin.Context){
 	var params v1dto.UpdateQuestionSingleInputParams
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	if err := rh.service.UpdateQuestionSingle(params); err != nil {
+	if err := eh.service.UpdateQuestionSingle(params); err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
@@ -197,14 +221,14 @@ func (rh *ExamHandler) UpdateQuestionSingle(ctx *gin.Context){
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
 
-func (rh *ExamHandler) UpdateQuestionGroup(ctx *gin.Context){
+func (eh *ExamHandler) UpdateQuestionGroup(ctx *gin.Context){
 	var params v1dto.UpdateQuestionGroupInputParams
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	if err := rh.service.UpdateQuestionGroup(params); err != nil {
+	if err := eh.service.UpdateQuestionGroup(params); err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
@@ -212,14 +236,14 @@ func (rh *ExamHandler) UpdateQuestionGroup(ctx *gin.Context){
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
 
-func (rh *ExamHandler) UpdatePartDirection(ctx *gin.Context){
+func (eh *ExamHandler) UpdatePartDirection(ctx *gin.Context){
 	var params v1dto.UpdatePartDirectionInputParams
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	if err := rh.service.UpdatePartDirection(params); err != nil {
+	if err := eh.service.UpdatePartDirection(params); err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
@@ -227,14 +251,14 @@ func (rh *ExamHandler) UpdatePartDirection(ctx *gin.Context){
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
 
-func (rh *ExamHandler) ImportExamQuestionFromExcel(ctx *gin.Context){
+func (eh *ExamHandler) ImportExamQuestionFromExcel(ctx *gin.Context){
 	var params v1dto.ExamImportInputParams
 	if err := ctx.ShouldBind(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	if err := rh.service.ImportExamQuestionFromExcel(ctx, params); err != nil {
+	if err := eh.service.ImportExamQuestionFromExcel(ctx, params); err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}

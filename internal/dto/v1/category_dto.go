@@ -39,6 +39,7 @@ type CategoryDTO struct {
 type CategoryStructure struct {
 	Id			int		`json:"id" db:"id"`
 	Name		string	`json:"name" db:"name"`
+	Type		string	`json:"type" db:"type"`
 	ParentId	*int	`json:"-" db:"parent_id"`
 	Children	[]*CategoryStructure `json:"children,omitempty" db:"-"`
 }

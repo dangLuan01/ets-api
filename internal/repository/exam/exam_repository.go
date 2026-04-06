@@ -604,23 +604,28 @@ func (er *SqlExamRepository) FindFilterStructure() ([]*v1dto.FilterStructure, er
 	return filterStructure, nil
 }
 
-func (er *SqlExamRepository) FindExamsByFilter(params v1dto.FilterExamParams) ([]v1dto.ExamDTO, int64, error) {
-	var exams []v1dto.ExamDTO
-	query := er.db.From(goqu.T(TABLE_EXAM).As("e")).
+func (er *SqlExamRepository) FindExamsByFilter(params v1dto.FilterExamParams) ([]v1dto.ExamFilterDTO, int64, error) {
+	var exams []v1dto.ExamFilterDTO
+	ds := er.db.From(goqu.T(TABLE_EXAM).As("e")).
 		Select(
 			goqu.DISTINCT(goqu.I("e.id")).As("id"),
 			goqu.I("e.title"),
+			goqu.I("cf.slug").As("cert_slug"),
 			goqu.I("e.year"),
 			goqu.I("e.total_time"),
 			goqu.I("e.total_question"),
 			goqu.I("e.thumbnail"),
 			goqu.I("e.updated_at"),
 		).
+		Join(goqu.T(TABLE_CERTIFICATE).As("cf"),
+		goqu.On(
+			goqu.I("e.cert_id").Eq(goqu.I("cf.id"))),
+		).
 		Join(goqu.T(TABLE_EXAM_CATEGORY_MAPPING).As("ec"),
 		goqu.On(goqu.Ex{
 			"e.id":goqu.I("ec.exam_id"),
 		}))
-
+	
 	filters := []exp.Expression{}
 
 	// Apply filters
@@ -633,7 +638,7 @@ func (er *SqlExamRepository) FindExamsByFilter(params v1dto.FilterExamParams) ([
 	}
 
 	// Get total count
-	 var totalRecords int64
+	var totalRecords int64
     _, err := er.db.From(goqu.T(TABLE_EXAM_CATEGORY_MAPPING).As("ec")).
         Join(
             goqu.T(TABLE_EXAM).As("e"),
@@ -647,15 +652,56 @@ func (er *SqlExamRepository) FindExamsByFilter(params v1dto.FilterExamParams) ([
         return nil, 0, err
     }
 	
-	query = query.Where(filters...).Offset((uint(params.Page) - 1) * uint(params.Limit)).
+	ds = ds.Where(filters...).Offset((uint(params.Page) - 1) * uint(params.Limit)).
 		Limit(uint(params.Limit)).
 		Order(goqu.I("e.updated_at").Desc())
 
-	// Execute query
-	err = query.ScanStructs(&exams)
+	// Execute ds
+	err = ds.ScanStructs(&exams)
 	if err != nil {
 		return nil, 0, err
 	}
 
+	return exams, totalRecords, nil
+}
+
+func (er *SqlExamRepository) FindFeaturedExams(params v1dto.ExamFeaturedParams) ([]v1dto.ExamFeaturedRaw, int64, error) {
+	var exams []v1dto.ExamFeaturedRaw
+
+
+	ds := er.db.From(goqu.T(TABLE_EXAM).As("e")).
+		Select(
+			goqu.I("c.name"),
+			goqu.I("c.type"),
+			goqu.I("c.description"),
+			goqu.I("e.id"),
+			goqu.I("e.title"),
+			goqu.I("e.year"),
+			goqu.I("e.total_time"),
+			goqu.I("e.total_question"),
+			goqu.I("e.thumbnail"),
+		).
+		Join(goqu.T(TABLE_EXAM_CATEGORY_MAPPING).As("ec"), goqu.On(
+			goqu.I("e.id").Eq(goqu.I("ec.exam_id")),
+		)).
+		Join(goqu.T(TABLE_CATEGORY).As("c"), goqu.On(
+			goqu.I("c.id").Eq(goqu.I("ec.category_id")),
+		)).
+		Where(goqu.I("c.type").Eq(params.Type))
+	
+	totalRecords, err := ds.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	ds = ds.Offset((uint(params.Page) - 1) * uint(params.Limit)).
+		Limit(uint(params.Limit)).
+		Order(goqu.I("e.updated_at").Desc())
+	
+	err = ds.ScanStructs(&exams)
+	if err != nil {
+		return nil, 0, err
+	}
+	
 	return exams, totalRecords, nil
 }

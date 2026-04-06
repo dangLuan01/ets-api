@@ -116,7 +116,11 @@ func (m *mockExamRepo) FindFilterStructure() ([]*v1dto.FilterStructure, error) {
     return nil, nil
 }
 
-func (m *mockExamRepo) FindExamsByFilter(params v1dto.FilterExamParams) ([]v1dto.ExamDTO, int64, error) {
+func (m *mockExamRepo) FindExamsByFilter(params v1dto.FilterExamParams) ([]v1dto.ExamFilterDTO, int64, error) {
+    return nil, 0, nil
+}
+
+func (m *mockExamRepo) FindFeaturedExams(params v1dto.ExamFeaturedParams) ([]v1dto.ExamFeaturedRaw, int64, error) {
     return nil, 0, nil
 }
 
