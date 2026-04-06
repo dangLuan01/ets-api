@@ -1,45 +1,5 @@
 package models
 
-// --- TẦNG DANH MỤC (MASTER DATA) ---
-
-type Certificate struct {
-	Id 				int 					`json:"id" db:"id"`
-	Code 			string 					`json:"code" db:"code"`
-	Name 			string 					`json:"name" db:"name"`
-	Description 	*string 				`json:"description" db:"description"`
-	Status 			int 					`json:"status" db:"status"`
-}
-
-type SkillMaster struct {
-	Id 				int 					`json:"id" db:"id"`
-	CertId 			int 					`json:"cert_id" db:"cert_id"`
-	Code 			string 					`json:"code" db:"code"`
-	Name 			string 					`json:"name" db:"name"`
-	OrderIndex      int     				`json:"order_index" db:"order_index"`
-	Status 			int 					`json:"status" db:"status"`
-}
-
-type PartMaster struct {
-	Id 				int 					`json:"id" db:"id"`
-	SkillId 		int 					`json:"skill_id" db:"skill_id"`
-	PartNumber 		int 					`json:"part_number" db:"part_number"`
-	Name 			string 					`json:"name" db:"name"`
-	Status 			int 					`json:"status" db:"status"`
-}
-
-type Category struct {
-	Id 				int 					`json:"id" db:"id"`
-	ParentId 		*int 					`json:"parent_id" db:"parent_id"`
-	Name			string 					`json:"name" db:"name"`
-	Slug			*string					`json:"slug" db:"slug"`
-	Type			string					`json:"type" db:"type"`
-	Status 			int						`json:"status" db:"status"`
-	IsFilterable 	int 					`json:"is_filterable" db:"is_filterable"`
-	Priority 		int 					`json:"priority" db:"priority"`
-}
-
-// --- TẦNG RESPONSE (API JSON) ---
-
 type ExamModel struct {
 	Id 				int 					`json:"id" db:"id"`
 	CertificateId	int						`json:"cert_id" db:"cert_id"`

@@ -146,14 +146,49 @@ type UpdateQuestionGroupInputParams struct {
 	} `json:"sub_questions" binding:"required"`
 }
 
-type ExamDTO struct {
+type ExamFilterDTO struct {
+	Id 				int 					`json:"id" db:"id"`
+	Title 			string 					`json:"title" db:"title"`
+	CertSlug		string					`json:"cert_slug" db:"cert_slug"`
+	Year 			int 					`json:"year" db:"year"`
+	TotalTime 		int 					`json:"total_time" db:"total_time"`
+	TotalQuestion	int						`json:"total_question" db:"total_question"`
+	Thumbnail 		*string 				`json:"thumbnail" db:"thumbnail"`
+	UpdatedAt 		string 					`json:"-" db:"updated_at"`
+}
+
+type ExamFeaturedParams struct {
+	Type			string	`form:"type" binding:"required"`	
+	Page			int32	`form:"page" binding:"required,min=1"`
+	Limit			int32	`form:"limit" binding:"required,max=50"`
+}
+
+type ExamFeaturedRaw struct {
+	Name			string					`json:"name" db:"name"`
+	Type 			string					`json:"type" db:"type"`
+	CateDescription *string					`json:"description" db:"description"`
 	Id 				int 					`json:"id" db:"id"`
 	Title 			string 					`json:"title" db:"title"`
 	Year 			int 					`json:"year" db:"year"`
 	TotalTime 		int 					`json:"total_time" db:"total_time"`
 	TotalQuestion	int						`json:"total_question" db:"total_question"`
 	Thumbnail 		*string 				`json:"thumbnail" db:"thumbnail"`
-	UpdatedAt 		string 					`json:"-" db:"updated_at"`
+}
+
+type FeaturedDTO struct {
+	Name 			string					`json:"name" db:"name"`
+	Type 			string					`json:"type" db:"type"`
+	CateDescription *string					`json:"description" db:"description"`
+	Exams 			[]ExamFeaturedDTO		`json:"exams"`
+}
+
+type ExamFeaturedDTO struct {
+	Id 				int 					`json:"id" db:"id"`
+	Title 			string 					`json:"title" db:"title"`
+	Year 			int 					`json:"year" db:"year"`
+	TotalTime 		int 					`json:"total_time" db:"total_time"`
+	TotalQuestion	int						`json:"total_question" db:"total_question"`
+	Thumbnail 		*string 				`json:"thumbnail" db:"thumbnail"`
 }
 
 func MapDetailExamScoreDTO(params DetailExamScore) *DetailExamScoreDTO {

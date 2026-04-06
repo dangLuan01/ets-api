@@ -107,8 +107,7 @@ func OptinalAuthMiddleware() gin.HandlerFunc {
 		}
 		ctx.Set("data", payload)
 		
-		ctx.Next()
-		
+		ctx.Next()	
 	}
 }
 

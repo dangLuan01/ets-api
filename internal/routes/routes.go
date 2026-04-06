@@ -20,12 +20,18 @@ func RegisterRoute(r *gin.Engine, authService auth.TokenService, cacheService ca
 		middleware.CORSMiddleware(),
 	)
 	
+
 	v1api 		:= r.Group("/api/v1")
+	authRoute   := v1api.Group("")
 	protected 	:= v1api.Group("")
 
 	v1api.Use(
 		//middleware.ApiKeyMiddleware(),
 		middleware.OptinalAuthMiddleware(),
+		middleware.RateLimiterMiddleware(),
+	)
+
+	authRoute.Use(
 		middleware.RateLimiterMiddleware(),
 	)
 	
@@ -43,7 +49,7 @@ func RegisterRoute(r *gin.Engine, authService auth.TokenService, cacheService ca
 
 		switch route.(type) {
 		case *v1routes.AuthRoutes:
-			route.Register(v1api)
+			route.Register(authRoute)
 		case *v1routesClient.MenuRoutes:
 			route.Register(v1api)
 		case *v1routesClient.ExamRoutes:

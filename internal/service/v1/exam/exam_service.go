@@ -790,6 +790,44 @@ func (es *examService) GetFilterStructure() ([]*v1dto.FilterStructure, error) {
 	return utils.BuildTree(filterStructure), nil
 }
 
-func (es *examService) FilterExam(params v1dto.FilterExamParams) ([]v1dto.ExamDTO, int64, error) {
+func (es *examService) FilterExam(params v1dto.FilterExamParams) ([]v1dto.ExamFilterDTO, int64, error) {
 	return es.repo.FindExamsByFilter(params)
+}
+
+func (es *examService) GetFeaturedExams(params v1dto.ExamFeaturedParams) (v1dto.FeaturedDTO, int64, error) {
+	raw, total, err := es.repo.FindFeaturedExams(params)
+	if err != nil {
+		return v1dto.FeaturedDTO{}, 0, err
+	}
+	
+	resultMap := make(map[string]*v1dto.FeaturedDTO)
+
+	for _, r := range raw {
+		if _, ok := resultMap[r.Type]; !ok {
+			resultMap[r.Type]  = &v1dto.FeaturedDTO{
+				Type: r.Type,
+				Name: r.Name,
+				CateDescription: r.CateDescription,
+				Exams: []v1dto.ExamFeaturedDTO{},
+			}
+		}
+
+		resultMap[r.Type].Exams = append(resultMap[r.Type].Exams, v1dto.ExamFeaturedDTO{
+			Id: r.Id,
+			Title: r.Title,
+			Year: r.Year,
+			TotalTime: r.TotalTime,
+			TotalQuestion: r.TotalQuestion,
+			Thumbnail: r.Thumbnail,
+		})
+	}
+
+	var result v1dto.FeaturedDTO
+
+	for _, r := range resultMap {
+		result = *r
+		break
+	}
+
+	return result, total, nil
 }

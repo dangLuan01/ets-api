@@ -11,7 +11,9 @@ type ExamService interface {
 	FindExamById(examId int) (models.Exam, error)
 	CalculateScoreExam(ctx *gin.Context, params v1dto.QuestionAnswerInputParams) (v1dto.DetailExamScore, error)
 	GetFilterStructure() ([]*v1dto.FilterStructure, error)
-	FilterExam(params v1dto.FilterExamParams) ([]v1dto.ExamDTO, int64, error)
+	FilterExam(params v1dto.FilterExamParams) ([]v1dto.ExamFilterDTO, int64, error)
+	GetFeaturedExams(params v1dto.ExamFeaturedParams) (v1dto.FeaturedDTO, int64, error)
+
 	// --- SERVICE ADMIN (CRUD EXAM) ---
 	GetAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64, error)
 	CreateExam(params v1dto.CreateExamInputParams) error
