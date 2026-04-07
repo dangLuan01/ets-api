@@ -18,7 +18,7 @@ func NewExamRoutes(handler *v1handler.ExamHandler) *ExamRoutes {
 func (tr *ExamRoutes) Register(r *gin.RouterGroup) {
 	exam := r.Group("/exams")
 	{
-		exam.POST("/:id/full-test", tr.handler.FindExamById)
+		exam.GET("/:id/full-test", tr.handler.FindExamById)
 		exam.POST("/calculate/score", tr.handler.CalculateScoreExam)
 		exam.GET("/filter-structure", tr.handler.GetFilterStructure)
 		exam.POST("/filter", tr.handler.FilterExam)
