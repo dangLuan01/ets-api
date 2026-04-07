@@ -21,7 +21,7 @@ func (tr *ExamRoutes) Register(r *gin.RouterGroup) {
 		exam.GET("/:id/full-test", tr.handler.FindExamById)
 		exam.POST("/calculate/score", tr.handler.CalculateScoreExam)
 		exam.GET("/filter-structure", tr.handler.GetFilterStructure)
-		exam.POST("/filter", tr.handler.FilterExam)
-		exam.POST("featured", tr.handler.GetFeatured)
+		exam.GET("/filter", tr.handler.FilterExam)
+		exam.GET("featured", tr.handler.GetFeatured)
 	}
 }
