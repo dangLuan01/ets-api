@@ -63,6 +63,12 @@ type UpdateExamInputParams struct {
 	CategoryIds 	[]int 			`json:"category_ids" db:"-"`
 	AudioFullUrl 	*string			`json:"audio_full_url" db:"audio_full_url"`
 	Status 			*int 			`json:"status" db:"status" binding:"required,oneof=0 1"`
+	Target			*Target			`json:"target" db:"-"`
+}
+
+type Target struct {
+	TargetExamId 	int				`json:"target_exam_id" db:"-"`
+	TargetPartId  	[]int			`json:"target_part_id" db:"-"`
 }
 
 type ExamStructure struct {

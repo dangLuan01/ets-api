@@ -18,7 +18,7 @@ func NewExamAdminModule(ctx *ModuleContext) *ExamAdminModule {
 	partDirectionRepo := repositoryPartDirection.NewSqlPartDirectionRepository(ctx.DB)
 	questionRepository := repositoryQuestion.NewSqlQuestionRepository(ctx.DB)
 	examRepo := repositoryExam.NewSqlExamRepository(ctx.DB)
-	examService := v1service.NewExamService(examRepo, partDirectionRepo, questionRepository)
+	examService := v1service.NewExamService(examRepo, ctx.DB, partDirectionRepo, questionRepository)
 	examHandler := v1handler.NewExamHandler(examService)
 	examRoutes := v1routes.NewExamRoutes(examHandler)
 

@@ -15,18 +15,21 @@ import (
 	repositoryPartDirection "github.com/dangLuan01/ets-api/internal/repository/part_direction"
 	repositoryQuestion "github.com/dangLuan01/ets-api/internal/repository/question"
 	"github.com/dangLuan01/ets-api/internal/utils"
+	"github.com/doug-martin/goqu/v9"
 	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
 )
 
 type examService struct {
+	db *goqu.Database
 	repo repositoryExam.ExamRepository
 	repoPartDirection repositoryPartDirection.PartDirectionRepository
 	repoQuestion repositoryQuestion.QuestionRepository
 }
 
-func NewExamService(repo repositoryExam.ExamRepository, repoPartDirection repositoryPartDirection.PartDirectionRepository, repoQuestion repositoryQuestion.QuestionRepository) ExamService {
+func NewExamService(repo repositoryExam.ExamRepository, DB *goqu.Database, repoPartDirection repositoryPartDirection.PartDirectionRepository, repoQuestion repositoryQuestion.QuestionRepository) ExamService {
 	return &examService{
+		db: DB,
 		repo: repo,
 		repoPartDirection: repoPartDirection,
 		repoQuestion: repoQuestion,
@@ -338,10 +341,90 @@ func (es *examService) EditExamById(id int) (models.ExamModel, error) {
 }
 
 func (es *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
-	
-	
+	tx, err := es.db.Begin()
+	if err != nil {
+		return err
+	}
 
-	return es.repo.UpdateExam(params.Id, params)
+	defer func ()  {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+	
+	if params.Target != nil {
+		targetExam, err := es.repo.GetTargetExamQuestions(params.Target.TargetExamId, params.Target.TargetPartId)
+		if err != nil {
+			return err
+		}
+
+		err = es.repo.DeleteExamQuestions(tx, params.Id)
+		if err != nil {
+			return err
+		}
+
+		var rows []models.TargetExamMapping
+
+		for _, target := range targetExam {
+			rows = append(rows, models.TargetExamMapping {
+				ExamId: params.Id,
+				EntityType: target.EntityType,
+				EntityId: target.EntityId,
+				PartId: target.PartId,
+				OrderIndex: target.OrderIndex,
+			})
+		}
+
+		if err = es.repo.InsertExamQuestions(tx, rows); err != nil {
+			return err
+		}
+	}
+	
+	updateData := goqu.Record{
+        "title":          params.Title,
+        "year":           params.Year,
+        "cert_id":        params.CertificateId,
+        "total_question": params.TotalQuestion,
+        "total_time":     params.TotalTime,
+    }
+
+    if params.Description != nil {
+        updateData["description"] = params.Description
+    }
+    if params.Thumbnail != nil {
+        updateData["thumbnail"] = params.Thumbnail
+    }
+    if params.AudioFullUrl != nil {
+        updateData["audio_full_url"] = params.AudioFullUrl
+    }
+    if params.Status != nil {
+        updateData["status"] = params.Status
+    }
+
+	if err = es.repo.UpdateExam(tx, params.Id, updateData); err != nil {
+		return err
+	}
+
+	if err := es.repo.DeleteExamCategories(tx, params.Id); err != nil {
+		return err
+	}
+
+	// INSERT categories (batch insert)
+    if len(params.CategoryIds) > 0 {
+        rows := make([]goqu.Record, 0, len(params.CategoryIds))
+        for _, cateId := range params.CategoryIds {
+            rows = append(rows, goqu.Record{
+                "exam_id":     params.Id,
+                "category_id": cateId,
+            })
+        }
+
+        if err := es.repo.InsertExamCategories(tx, rows); err != nil {
+            return err
+        }
+    }
+	
+	return tx.Commit()
 }
 
 func (es *examService) CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error {
