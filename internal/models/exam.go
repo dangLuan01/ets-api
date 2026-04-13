@@ -130,3 +130,11 @@ type ScoreConversion struct {
 	RawScore 		int 					`db:"raw_score"`
 	ScaledScore 	int 					`db:"scaled_score"`
 }
+
+type TargetExamMapping struct {
+	ExamId 			int 					`db:"exam_id"`
+	EntityType 		string 					`db:"entity_type"`
+	EntityId 		int 					`db:"entity_id"`
+	PartId 			int						`db:"part_id"`
+	OrderIndex 		int 					`db:"order_index"`
+}

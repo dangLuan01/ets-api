@@ -5,6 +5,7 @@ import (
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
+	"github.com/doug-martin/goqu/v9"
 	"github.com/gin-gonic/gin"
 )
 type mockExamRepo struct {
@@ -58,71 +59,29 @@ func (m *mockExamRepo) SaveAttemptWithAnswers(
 
 /* Các method không dùng → stub rỗng */
 
-func (m *mockExamRepo) FindExamQuestionMappingById(int) ([]models.ExamQuestionMapping, error) {
-    return nil, nil
-}
-func (m *mockExamRepo) FindQuesionByIds([]int) ([]models.Question, error) {
-    return nil, nil
-}
-func (m *mockExamRepo) FindGroupQuestionByIds([]int) ([]models.QuestionGroup, error) {
-    return nil, nil
-}
-func (m *mockExamRepo) FindSubQuesionByGroupIds([]int) ([]models.Question, error) {
-    return nil, nil
-}
-func (m *mockExamRepo) FindDirectionByExamId(int) ([]models.Direction, error) {
-    return nil, nil
-}
-func (m *mockExamRepo) FindSkillsByCertId(int) ([]models.SkillMaster, error) {
-    return nil, nil
-}
-func (m *mockExamRepo) FindPartsByCertId(int) ([]models.PartMaster, error) {
-    return nil, nil
-}
-
-func (m *mockExamRepo) FindAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64,  error) {
-    return []models.ExamModel{}, 0, nil
-}
-
-func (m *mockExamRepo) CreateExam(params v1dto.CreateExamInputParams) error {
-    return nil
-}
-
-func (m *mockExamRepo) GetExamById(examId int) (models.ExamModel, error) {
-    return models.ExamModel{}, nil
-}
-
-func (m *mockExamRepo) UpdateExam(examId int, params v1dto.UpdateExamInputParams) error {
-    return nil
-}
-
-func (m *mockExamRepo) CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error {
-    return nil
-}
-
-func (m *mockExamRepo) FindExamQuestionMappingByPartId(examId int, partId int) ([]v1dto.ExamQuestionMappingDTO, error) {
-    return nil, nil
-}
-
-func (m *mockExamRepo) UpdateQuestionSingle(params v1dto.UpdateQuestionSingleInputParams) error {
-    return nil
-}
-
-func (m *mockExamRepo) UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInputParams) error {
-   return nil
-}
-
-func (m *mockExamRepo) FindFilterStructure() ([]*v1dto.FilterStructure, error) {
-    return nil, nil
-}
-
-func (m *mockExamRepo) FindExamsByFilter(params v1dto.FilterExamParams) ([]v1dto.ExamFilterDTO, int64, error) {
-    return nil, 0, nil
-}
-
-func (m *mockExamRepo) FindFeaturedExams(params v1dto.ExamFeaturedParams) ([]v1dto.ExamFeaturedRaw, int64, error) {
-    return nil, 0, nil
-}
+func (m *mockExamRepo) FindExamQuestionMappingById(int) ([]models.ExamQuestionMapping, error)
+func (m *mockExamRepo) FindQuesionByIds([]int) ([]models.Question, error)
+func (m *mockExamRepo) FindGroupQuestionByIds([]int) ([]models.QuestionGroup, error)
+func (m *mockExamRepo) FindSubQuesionByGroupIds([]int) ([]models.Question, error)
+func (m *mockExamRepo) FindDirectionByExamId(int) ([]models.Direction, error)
+func (m *mockExamRepo) FindSkillsByCertId(int) ([]models.SkillMaster, error)
+func (m *mockExamRepo) FindPartsByCertId(int) ([]models.PartMaster, error)
+func (m *mockExamRepo) FindAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64,  error)
+func (m *mockExamRepo) CreateExam(params v1dto.CreateExamInputParams) error
+func (m *mockExamRepo) GetExamById(examId int) (models.ExamModel, error)
+func (m *mockExamRepo) UpdateExam(tx *goqu.TxDatabase, examId int, data goqu.Record) error
+func (m *mockExamRepo) DeleteExamCategories(tx *goqu.TxDatabase, examId int) error
+func (m *mockExamRepo) InsertExamCategories(tx *goqu.TxDatabase, rows []goqu.Record) error
+func (m *mockExamRepo) DeleteExamQuestions(tx *goqu.TxDatabase, examId int) error
+func (m *mockExamRepo) GetTargetExamQuestions(targetExamId int, partId []int) ([]models.TargetExamMapping, error)
+func (m *mockExamRepo) InsertExamQuestions(tx *goqu.TxDatabase, rows []models.TargetExamMapping) error
+func (m *mockExamRepo) CreatePartDirection(params v1dto.CreatePartDirectionInputParams) error
+func (m *mockExamRepo) FindExamQuestionMappingByPartId(examId int, partId int) ([]v1dto.ExamQuestionMappingDTO, error)
+func (m *mockExamRepo) UpdateQuestionSingle(params v1dto.UpdateQuestionSingleInputParams) error
+func (m *mockExamRepo) UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInputParams) error
+func (m *mockExamRepo) FindFilterStructure() ([]*v1dto.FilterStructure, error)
+func (m *mockExamRepo) FindExamsByFilter(params v1dto.FilterExamParams) ([]v1dto.ExamFilterDTO, int64, error)
+func (m *mockExamRepo) FindFeaturedExams(params v1dto.ExamFeaturedParams) ([]v1dto.ExamFeaturedRaw, int64, error)
 
 func TestCalculateScoreExam_Success(t *testing.T) {
     repo := &mockExamRepo{}
