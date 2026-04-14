@@ -87,6 +87,7 @@ func NewApplication(cfg *config.Config) (*Application, error) {
 		NewPartMasterModule(ctx),
 		NewQuestionModule(ctx),
 		NewMenuModule(ctx),
+		NewMenuAdminModule(ctx),
 		NewCategoryModule(ctx),
 	}
 
