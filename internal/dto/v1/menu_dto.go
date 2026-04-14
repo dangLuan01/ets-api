@@ -7,11 +7,11 @@ type GetMenuParams struct {
 }
 
 type MenuDTO struct {
-	Id 			int			`json:"-" db:"id"`
+	Id 			int			`json:"id" db:"id"`
 	Name 		string 		`json:"name" db:"name"`
 	Slug 		*string 	`json:"slug" db:"slug"`
 	Type		string		`json:"type" db:"type"`
-	ParentId	*int		`json:"-" db:"parent_id"`
+	ParentId	*int		`json:"parent_id" db:"parent_id"`
 	Children 	[]*MenuDTO 	`json:"children,omitempty" db:"-"`
 }
 
