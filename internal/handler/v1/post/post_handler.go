@@ -4,33 +4,33 @@ import (
 	"net/http"
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
-	v1service "github.com/dangLuan01/ets-api/internal/service/v1/certificate"
+	v1service "github.com/dangLuan01/ets-api/internal/service/v1/post"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/dangLuan01/ets-api/internal/validation"
 	"github.com/gin-gonic/gin"
 )
 
-type CertificateHandler struct {
-	service v1service.CertificateService
+type PostHandler struct {
+	service v1service.PostService
 }
 
-type EditCertificateParams struct {
+type EditPostParams struct {
 	Id int `uri:"id" binding:"required"`
 }
 
-type UpdateCertificateParams struct {
-	Id 				int `uri:"id" binding:"required"`
-	Certificate 	v1dto.CertificateParamsInput
+type UpdatePostParams struct {
+	Id 	int `uri:"id" binding:"required"`
+	Post v1dto.PostParamsInput
 }
 
-func NewCertificateHandler(service v1service.CertificateService) *CertificateHandler {
-	return &CertificateHandler {
+func NewPostHandler(service v1service.PostService) *PostHandler {
+	return &PostHandler {
 		service: service,
 	}
 }
 
-func (ch *CertificateHandler) GetAllCertificates(ctx *gin.Context) {
-	var params v1dto.GetAllCertificateParams
+func (ch *PostHandler) GetAllPosts(ctx *gin.Context) {
+	var params v1dto.GetAllPostParams
 	if err := ctx.ShouldBindQuery(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
@@ -43,7 +43,7 @@ func (ch *CertificateHandler) GetAllCertificates(ctx *gin.Context) {
 		params.Limit = 20
 	}
 
-	certificates, totalRecords, err := ch.service.GetAllCertificates(params)
+	certificates, totalRecords, err := ch.service.GetAllPosts(params)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
@@ -54,14 +54,14 @@ func (ch *CertificateHandler) GetAllCertificates(ctx *gin.Context) {
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", paginationResponse)
 }
 
-func (ch *CertificateHandler) CreateCertificate(ctx *gin.Context) {
-	var params v1dto.CertificateParamsInput
+func (ch *PostHandler) CreatePost(ctx *gin.Context) {
+	var params v1dto.PostParamsInput
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	if err := ch.service.CreateCertificate(params); err != nil {
+	if err := ch.service.CreatePost(params); err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
@@ -69,14 +69,14 @@ func (ch *CertificateHandler) CreateCertificate(ctx *gin.Context) {
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
 
-func (ch *CertificateHandler) EditCertificate(ctx *gin.Context) {
-	var params EditCertificateParams
+func (ch *PostHandler) EditPost(ctx *gin.Context) {
+	var params EditPostParams
 	if err := ctx.ShouldBindUri(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	certificate, err := ch.service.EditCertificate(params.Id)
+	certificate, err := ch.service.EditPost(params.Id)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
@@ -85,14 +85,14 @@ func (ch *CertificateHandler) EditCertificate(ctx *gin.Context) {
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", certificate)
 }
 
-func (ch *CertificateHandler) UpdateCertificate(ctx *gin.Context) {
-	var params v1dto.CertificateParamsUpdate
+func (ch *PostHandler) UpdatePost(ctx *gin.Context) {
+	var params v1dto.PostParamsUpdate
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	if err := ch.service.UpdateCertificate(params); err != nil {
+	if err := ch.service.UpdatePost(params); err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
@@ -100,4 +100,4 @@ func (ch *CertificateHandler) UpdateCertificate(ctx *gin.Context) {
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
 
-func (ch *CertificateHandler) DeleteCertificate(ctx *gin.Context) {}
+func (ch *PostHandler) DeletePost(ctx *gin.Context) {}

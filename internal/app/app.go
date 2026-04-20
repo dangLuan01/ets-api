@@ -89,6 +89,8 @@ func NewApplication(cfg *config.Config) (*Application, error) {
 		NewMenuModule(ctx),
 		NewMenuAdminModule(ctx),
 		NewCategoryModule(ctx),
+		NewTagModule(ctx),
+		NewPostModule(ctx),
 	}
 
 	routes.RegisterRoute(r, tokenService, cacheRedisService ,getModuleRoutes(modules)...)
