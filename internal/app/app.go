@@ -91,6 +91,7 @@ func NewApplication(cfg *config.Config) (*Application, error) {
 		NewCategoryModule(ctx),
 		NewTagModule(ctx),
 		NewPostModule(ctx),
+		NewPostAdminModule(ctx),
 	}
 
 	routes.RegisterRoute(r, tokenService, cacheRedisService ,getModuleRoutes(modules)...)

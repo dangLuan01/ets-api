@@ -107,3 +107,12 @@ func (ps *postService) UpdatePost(params v1dto.PostParamsUpdate) error {
 
 	return tx.Commit()
 }
+
+//=================================Client==============================
+func (ps *postService) FindAllPosts(params v1dto.GetAllPostParams) ([]v1dto.PostDTO, int64, error) {
+	return ps.repo.FindAllPosts(params)
+}
+
+func (ps *postService) FindPostBySlug(slug string) (v1dto.PostDetailDTO, error) {
+	return ps.repo.FindPostBySlug(slug)
+}

@@ -9,7 +9,7 @@ type GetAllTagParams struct {
 type TagParamsInput struct {
 	Name 		string  `json:"name" db:"name" binding:"required,max=255"`
 	Slug 		string  `json:"slug" db:"slug" binding:"required,max=255"`
-	Status 		int  	`json:"status" db:"status" binding:"required,oneof=0 1"`
+	Status 		int  	`json:"status" db:"status" binding:"omitempty,oneof=0 1"`
 }
 
 type TagParamsUpdate struct {

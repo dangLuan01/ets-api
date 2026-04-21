@@ -10,4 +10,7 @@ type PostService interface {
 	CreatePost(params v1dto.PostParamsInput) error
 	EditPost(id int) (models.Post, error)
 	UpdatePost(params v1dto.PostParamsUpdate) error
+	//====================Client==========================
+	FindAllPosts(params v1dto.GetAllPostParams) ([]v1dto.PostDTO, int64, error)
+	FindPostBySlug(slug string) (v1dto.PostDetailDTO, error)
 }

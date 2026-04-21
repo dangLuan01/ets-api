@@ -9,7 +9,7 @@ type PostRoutes struct {
 	handler *v1handler.PostHandler
 }
 
-func NewPostRoutes(handler *v1handler.PostHandler) *PostRoutes {
+func NewPostAdminRoutes(handler *v1handler.PostHandler) *PostRoutes {
 	return &PostRoutes {
 		handler: handler,
 	}

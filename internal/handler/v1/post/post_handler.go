@@ -14,6 +14,10 @@ type PostHandler struct {
 	service v1service.PostService
 }
 
+type FindPostBySlugParams struct {
+	Slug string `uri:"slug" binding:"required,slug"`
+}
+
 type EditPostParams struct {
 	Id int `uri:"id" binding:"required"`
 }
@@ -43,13 +47,13 @@ func (ch *PostHandler) GetAllPosts(ctx *gin.Context) {
 		params.Limit = 20
 	}
 
-	certificates, totalRecords, err := ch.service.GetAllPosts(params)
+	posts, totalRecords, err := ch.service.GetAllPosts(params)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
 
-	paginationResponse := utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, certificates)
+	paginationResponse := utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, posts)
 
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", paginationResponse)
 }
@@ -101,3 +105,46 @@ func (ch *PostHandler) UpdatePost(ctx *gin.Context) {
 }
 
 func (ch *PostHandler) DeletePost(ctx *gin.Context) {}
+//===============================Client=============================
+
+
+func (ch *PostHandler) FindAllPosts(ctx *gin.Context) {
+	var params v1dto.GetAllPostParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	if params.Page <= 0 {
+		params.Page = 1
+	}
+	if params.Limit <= 0 {
+		params.Limit = 20
+	}
+
+	posts, totalRecords, err := ch.service.FindAllPosts(params)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	paginationResponse := utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, posts)
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", paginationResponse)
+}
+
+func (ch *PostHandler) FindPostBySlug(ctx *gin.Context) {
+	var params FindPostBySlugParams
+	if err := ctx.ShouldBindUri(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	post, err := ch.service.FindPostBySlug(params.Slug)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", post)
+}

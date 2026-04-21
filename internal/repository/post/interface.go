@@ -13,4 +13,7 @@ type PostRepository interface {
 	UpdatePostById(tx *goqu.TxDatabase, id int, params goqu.Record) error
 	InsertPostTag(tx *goqu.TxDatabase, rows []goqu.Record) error
 	DeletePostTag(tx *goqu.TxDatabase, postId int) error
+	//=========================Client=======================
+	FindAllPosts(params v1dto.GetAllPostParams) ([]v1dto.PostDTO, int64, error)
+	FindPostBySlug(slug string) (v1dto.PostDetailDTO, error)
 }
