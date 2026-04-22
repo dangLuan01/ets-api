@@ -75,12 +75,13 @@ func (ps *postService) UpdatePost(params v1dto.PostParamsUpdate) error {
 		}
 	}()
 
-	updateData := goqu.Record{}
+	updateData 					:= goqu.Record{}
 	updateData["name"] 			= params.Name
 	updateData["slug"] 			= params.Slug
 	updateData["content"] 		= params.Content
 	updateData["summary"] 		= params.Summary
 	updateData["thumbnail_url"]	= params.ThumbnailUrl
+	updateData["priority"]		= params.Priority
 	updateData["updated_at"] 	= time.Now()
 	updateData["status"] 		= params.Status
 
