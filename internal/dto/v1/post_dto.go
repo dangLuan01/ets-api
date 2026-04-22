@@ -13,6 +13,7 @@ type PostParamsInput struct {
 	Content 		string  		`json:"content" db:"content" binding:"required"`
 	Summary 		string  		`json:"summary" db:"summary" binding:"required"`
 	ThumbnailUrl 	string  		`json:"thumbnail_url" db:"thumbnail_url" binding:"required"`
+	Priority 		int  			`json:"priority" db:"priority" binding:"omitempty,minInt=0,maxInt=9999"`
 	Status 			int  			`json:"status" db:"status" binding:"required,oneof=0 1"`
 	Tags 			[]int			`json:"tags" db:"-" binding:"required"`
 }
@@ -24,6 +25,7 @@ type PostParamsUpdate struct {
 	Content 		string  		`json:"content" binding:"required"`
 	Summary 		string  		`json:"summary" binding:"required"`
 	ThumbnailUrl 	string  		`json:"thumbnail_url" binding:"required"`
+	Priority 		int  			`json:"priority" db:"priority" binding:"omitempty,minInt=0,maxInt=9999"`
 	Status 			int  			`json:"status" binding:"omitempty,oneof=0 1"`
 	Tags 			[]int			`json:"tags" db:"-" binding:"required"`
 }
@@ -46,6 +48,7 @@ type PostDetailDTO struct {
 	Summary 		string  		`json:"summary" db:"summary"`
 	ThumbnailUrl 	string  		`json:"thumbnail_url" db:"thumbnail_url"`
 	ViewCount		int				`json:"view_count" db:"view_count"`
+	Priority 		int  			`json:"priority" db:"priority"`
 	UpdatedAt		string			`json:"updated_at" db:"updated_at"`
 	TagsRaw 		[]byte   		`json:"-" db:"tags"`
 	Tags    		[]TagDTO 		`json:"tags" db:"-"`

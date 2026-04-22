@@ -7,6 +7,7 @@ type Post struct {
 	Content 		string  `json:"content" db:"content"`
 	Summary 		string  `json:"summary" db:"summary"`
 	ThumbnailUrl 	string  `json:"thumbnail_url" db:"thumbnail_url"`
+	Priority 		int  	`json:"priority" db:"priority"`
 	Status 			int  	`json:"status" db:"status"`
 	Tags			[]int	`json:"tags" db:"-"`
 }
