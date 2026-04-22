@@ -43,13 +43,13 @@ func (ch *TagHandler) GetAllTags(ctx *gin.Context) {
 		params.Limit = 20
 	}
 
-	certificates, totalRecords, err := ch.service.GetAllTags(params)
+	tags, totalRecords, err := ch.service.GetAllTags(params)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
 
-	paginationResponse := utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, certificates)
+	paginationResponse := utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, tags)
 
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", paginationResponse)
 }

@@ -15,6 +15,9 @@ type PostRepository interface {
 	DeletePostTag(tx *goqu.TxDatabase, postId int) error
 	//=========================Client=======================
 	FindAllPosts(params v1dto.GetAllPostParams) ([]v1dto.PostDTO, int64, error)
+	FindAllPostsWithDesc(params v1dto.GetAllPostParams) ([]v1dto.PostDTO, int64, error)
+	FindAllPostsWithAsc(params v1dto.GetAllPostParams) ([]v1dto.PostDTO, int64, error)
+	FindAllPostsWithViewCount(params v1dto.GetAllPostParams) ([]v1dto.PostDTO, int64, error)
 	FindPostBySlug(slug string) (v1dto.PostDetailDTO, error)
 	FindPostByTagSlug(slug string, page, limit int32) ([]v1dto.PostDTO, int64, error)
 }

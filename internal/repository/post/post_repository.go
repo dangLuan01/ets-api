@@ -121,6 +121,82 @@ func (cr *SqlPostRepository) FindAllPosts(params v1dto.GetAllPostParams) ([]v1dt
 	var posts []v1dto.PostDTO
 	countDs := cr.db.From(goqu.T(TABLE_POST).As("p"))
 
+	if params.Name != "" {
+		countDs = countDs.Where(goqu.C("name").ILike("%" + params.Name + "%"))
+	}
+
+	totalRecords, err := countDs.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	postSub := cr.db.From(goqu.T(TABLE_POST).As("p")).
+	Select(
+		goqu.I("p.id"),
+		goqu.I("p.name"),
+		goqu.I("p.slug"),
+		goqu.I("p.summary"),
+		goqu.I("p.thumbnail_url"),
+		goqu.I("p.view_count"),
+		goqu.I("p.updated_at"),
+	)
+
+	if params.Name != "" {
+		postSub = postSub.Where(goqu.I("p.name").ILike("%" + params.Name + "%"))
+	}
+
+	postSub = postSub.Order(goqu.I("p.updated_at").Desc()).
+	Offset((uint(params.Page) - 1) * uint(params.Limit)).
+	Limit(uint(params.Limit))
+
+	tagSub := cr.db.From(goqu.T(TABLE_POST_TAG).As("pt")).
+	Select(
+		goqu.I("pt.post_id"),
+		goqu.L(`
+			JSON_ARRAYAGG(
+				JSON_OBJECT(
+					'name', t.name,
+					'slug', t.slug
+				)
+			)
+		`).As("tags"),
+	).
+	Join(goqu.T(TABLE_TAG).As("t"),
+		goqu.On(goqu.I("t.id").Eq(goqu.I("pt.tag_id"))),
+	).
+	GroupBy(goqu.I("pt.post_id"))
+
+	ds := cr.db.From(postSub.As("p")).
+	Select(
+		goqu.I("p.name"),
+		goqu.I("p.slug"),
+		goqu.I("p.summary"),
+		goqu.I("p.thumbnail_url"),
+		goqu.I("p.view_count"),
+		goqu.I("p.updated_at"),
+		goqu.COALESCE(goqu.I("tag_data.tags"), goqu.L("JSON_ARRAY()")).As("tags"),
+	).
+	LeftJoin(tagSub.As("tag_data"),
+		goqu.On(goqu.I("tag_data.post_id").Eq(goqu.I("p.id"))),
+	)
+
+	if err := ds.ScanStructs(&posts); err != nil {
+		return nil, 0, err
+	}
+
+	for i := range posts {
+		if len(posts[i].TagsRaw) > 0 {
+			_ = json.Unmarshal(posts[i].TagsRaw, &posts[i].Tags)
+		}
+	}
+
+	return posts, totalRecords, nil
+}
+
+func (cr *SqlPostRepository) FindAllPostsWithDesc(params v1dto.GetAllPostParams) ([]v1dto.PostDTO, int64, error) {
+	var posts []v1dto.PostDTO
+	countDs := cr.db.From(goqu.T(TABLE_POST).As("p"))
+
 	totalRecords, err := countDs.Count()
 	if err != nil {
 		return nil, 0, err
@@ -136,7 +212,141 @@ func (cr *SqlPostRepository) FindAllPosts(params v1dto.GetAllPostParams) ([]v1dt
 		goqu.I("p.view_count"),
 		goqu.I("p.updated_at"),
 	).
-	Order(goqu.I("p.updated_at").Desc()).
+	Order(goqu.I("p.priority").Desc()).
+	Offset((uint(params.Page) - 1) * uint(params.Limit)).
+	Limit(uint(params.Limit))
+
+	tagSub := cr.db.From(goqu.T(TABLE_POST_TAG).As("pt")).
+	Select(
+		goqu.I("pt.post_id"),
+		goqu.L(`
+			JSON_ARRAYAGG(
+				JSON_OBJECT(
+					'name', t.name,
+					'slug', t.slug
+				)
+			)
+		`).As("tags"),
+	).
+	Join(goqu.T(TABLE_TAG).As("t"),
+		goqu.On(goqu.I("t.id").Eq(goqu.I("pt.tag_id"))),
+	).
+	GroupBy(goqu.I("pt.post_id"))
+
+	ds := cr.db.From(postSub.As("p")).
+	Select(
+		goqu.I("p.name"),
+		goqu.I("p.slug"),
+		goqu.I("p.summary"),
+		goqu.I("p.thumbnail_url"),
+		goqu.I("p.view_count"),
+		goqu.I("p.updated_at"),
+		goqu.COALESCE(goqu.I("tag_data.tags"), goqu.L("JSON_ARRAY()")).As("tags"),
+	).
+	LeftJoin(tagSub.As("tag_data"),
+		goqu.On(goqu.I("tag_data.post_id").Eq(goqu.I("p.id"))),
+	)
+
+	if err := ds.ScanStructs(&posts); err != nil {
+		return nil, 0, err
+	}
+
+	for i := range posts {
+		if len(posts[i].TagsRaw) > 0 {
+			_ = json.Unmarshal(posts[i].TagsRaw, &posts[i].Tags)
+		}
+	}
+
+	return posts, totalRecords, nil
+}
+
+func (cr *SqlPostRepository) FindAllPostsWithAsc(params v1dto.GetAllPostParams) ([]v1dto.PostDTO, int64, error) {
+	var posts []v1dto.PostDTO
+	countDs := cr.db.From(goqu.T(TABLE_POST).As("p"))
+
+	totalRecords, err := countDs.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	postSub := cr.db.From(goqu.T(TABLE_POST).As("p")).
+	Select(
+		goqu.I("p.id"),
+		goqu.I("p.name"),
+		goqu.I("p.slug"),
+		goqu.I("p.summary"),
+		goqu.I("p.thumbnail_url"),
+		goqu.I("p.view_count"),
+		goqu.I("p.updated_at"),
+	).
+	Order(goqu.I("p.priority").Asc()).
+	Offset((uint(params.Page) - 1) * uint(params.Limit)).
+	Limit(uint(params.Limit))
+
+	tagSub := cr.db.From(goqu.T(TABLE_POST_TAG).As("pt")).
+	Select(
+		goqu.I("pt.post_id"),
+		goqu.L(`
+			JSON_ARRAYAGG(
+				JSON_OBJECT(
+					'name', t.name,
+					'slug', t.slug
+				)
+			)
+		`).As("tags"),
+	).
+	Join(goqu.T(TABLE_TAG).As("t"),
+		goqu.On(goqu.I("t.id").Eq(goqu.I("pt.tag_id"))),
+	).
+	GroupBy(goqu.I("pt.post_id"))
+
+	ds := cr.db.From(postSub.As("p")).
+	Select(
+		goqu.I("p.name"),
+		goqu.I("p.slug"),
+		goqu.I("p.summary"),
+		goqu.I("p.thumbnail_url"),
+		goqu.I("p.view_count"),
+		goqu.I("p.updated_at"),
+		goqu.COALESCE(goqu.I("tag_data.tags"), goqu.L("JSON_ARRAY()")).As("tags"),
+	).
+	LeftJoin(tagSub.As("tag_data"),
+		goqu.On(goqu.I("tag_data.post_id").Eq(goqu.I("p.id"))),
+	)
+
+	if err := ds.ScanStructs(&posts); err != nil {
+		return nil, 0, err
+	}
+
+	for i := range posts {
+		if len(posts[i].TagsRaw) > 0 {
+			_ = json.Unmarshal(posts[i].TagsRaw, &posts[i].Tags)
+		}
+	}
+
+	return posts, totalRecords, nil
+}
+
+func (cr *SqlPostRepository) FindAllPostsWithViewCount(params v1dto.GetAllPostParams) ([]v1dto.PostDTO, int64, error) {
+	var posts []v1dto.PostDTO
+	countDs := cr.db.From(goqu.T(TABLE_POST).As("p"))
+
+	totalRecords, err := countDs.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	postSub := cr.db.From(goqu.T(TABLE_POST).As("p")).
+	Select(
+		goqu.I("p.id"),
+		goqu.I("p.name"),
+		goqu.I("p.slug"),
+		goqu.I("p.summary"),
+		goqu.I("p.thumbnail_url"),
+		goqu.I("p.view_count"),
+		goqu.I("p.updated_at"),
+	).
+	Order(goqu.I("p.view_count").Desc()).
 	Offset((uint(params.Page) - 1) * uint(params.Limit)).
 	Limit(uint(params.Limit))
 

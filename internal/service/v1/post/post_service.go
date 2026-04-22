@@ -110,7 +110,16 @@ func (ps *postService) UpdatePost(params v1dto.PostParamsUpdate) error {
 
 //=================================Client==============================
 func (ps *postService) FindAllPosts(params v1dto.GetAllPostParams) ([]v1dto.PostDTO, int64, error) {
-	return ps.repo.FindAllPosts(params)
+	switch params.OrderBy {
+	case "asc":
+		return ps.repo.FindAllPostsWithAsc(params)
+	case "desc":
+		return ps.repo.FindAllPostsWithDesc(params)
+	case "view_count":
+		return ps.repo.FindAllPostsWithViewCount(params)
+	default:
+		return ps.repo.FindAllPosts(params)	
+	}
 }
 
 func (ps *postService) FindPostBySlug(slug string) (v1dto.PostDetailDTO, error) {

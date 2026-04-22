@@ -9,7 +9,7 @@ type TagRoutes struct {
 	handler *v1handler.TagHandler
 }
 
-func NewTagRoutes(handler *v1handler.TagHandler) *TagRoutes {
+func NewTagAdminRoutes(handler *v1handler.TagHandler) *TagRoutes {
 	return &TagRoutes {
 		handler: handler,
 	}

@@ -3,6 +3,7 @@ package v1dto
 type GetAllPostParams struct {
 	Page 			int32 			`form:"page" binding:"omitempty,min=1"`
 	Limit 			int32 			`form:"limit" binding:"omitempty,min=1,max=50"`
+	OrderBy 		string 			`form:"order_by" binding:"omitempty,oneof=asc desc updated_at view_count"`
 	Name 			string 			`form:"name" binding:"omitempty,max=255"`
 }
 
