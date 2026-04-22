@@ -116,3 +116,7 @@ func (ps *postService) FindAllPosts(params v1dto.GetAllPostParams) ([]v1dto.Post
 func (ps *postService) FindPostBySlug(slug string) (v1dto.PostDetailDTO, error) {
 	return ps.repo.FindPostBySlug(slug)
 }
+
+func (ps *postService) FindPostByTagSlug(slug string, page, limit int32) ([]v1dto.PostDTO, int64, error) {
+	return ps.repo.FindPostByTagSlug(slug, page, limit)
+}

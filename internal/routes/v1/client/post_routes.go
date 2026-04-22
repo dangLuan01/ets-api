@@ -16,9 +16,10 @@ func NewPostRoutes(handler *v1handler.PostHandler) *PostRoutes {
 }
 
 func (mr *PostRoutes) Register(r *gin.RouterGroup) {
-	menus := r.Group("/client/post")
+	post := r.Group("/client/post")
 	{
-		menus.GET("/get-all", mr.handler.FindAllPosts)
-		menus.GET("/:slug", mr.handler.FindPostBySlug)
+		post.GET("/get-all", mr.handler.FindAllPosts)
+		post.GET("/:slug", mr.handler.FindPostBySlug)
+		post.GET("/tag/:slug", mr.handler.FindPostByTagSlug)
 	}
 }

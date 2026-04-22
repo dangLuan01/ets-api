@@ -13,4 +13,5 @@ type PostService interface {
 	//====================Client==========================
 	FindAllPosts(params v1dto.GetAllPostParams) ([]v1dto.PostDTO, int64, error)
 	FindPostBySlug(slug string) (v1dto.PostDetailDTO, error)
+	FindPostByTagSlug(slug string, page, limit int32) ([]v1dto.PostDTO, int64, error)
 }
