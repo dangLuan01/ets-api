@@ -20,7 +20,6 @@ func RegisterRoute(r *gin.Engine, authService auth.TokenService, cacheService ca
 		middleware.CORSMiddleware(),
 	)
 	
-
 	v1api 		:= r.Group("/api/v1")
 	authRoute   := v1api.Group("")
 	protected 	:= v1api.Group("")
@@ -53,6 +52,10 @@ func RegisterRoute(r *gin.Engine, authService auth.TokenService, cacheService ca
 		case *v1routesClient.MenuRoutes:
 			route.Register(v1api)
 		case *v1routesClient.ExamRoutes:
+			route.Register(v1api)
+		case *v1routesClient.PostRoutes:
+			route.Register(v1api)
+		case *v1routesClient.TagRoutes:
 			route.Register(v1api)
 		default:
 			route.Register(protected)

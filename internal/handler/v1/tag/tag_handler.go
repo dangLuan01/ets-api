@@ -4,33 +4,33 @@ import (
 	"net/http"
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
-	v1service "github.com/dangLuan01/ets-api/internal/service/v1/certificate"
+	v1service "github.com/dangLuan01/ets-api/internal/service/v1/tag"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/dangLuan01/ets-api/internal/validation"
 	"github.com/gin-gonic/gin"
 )
 
-type CertificateHandler struct {
-	service v1service.CertificateService
+type TagHandler struct {
+	service v1service.TagService
 }
 
-type EditCertificateParams struct {
+type EditTagParams struct {
 	Id int `uri:"id" binding:"required"`
 }
 
-type UpdateCertificateParams struct {
-	Id 				int `uri:"id" binding:"required"`
-	Certificate 	v1dto.CertificateParamsInput
+type UpdateTagParams struct {
+	Id 	int `uri:"id" binding:"required"`
+	Tag v1dto.TagParamsInput
 }
 
-func NewCertificateHandler(service v1service.CertificateService) *CertificateHandler {
-	return &CertificateHandler {
+func NewTagHandler(service v1service.TagService) *TagHandler {
+	return &TagHandler {
 		service: service,
 	}
 }
 
-func (ch *CertificateHandler) GetAllCertificates(ctx *gin.Context) {
-	var params v1dto.GetAllCertificateParams
+func (ch *TagHandler) GetAllTags(ctx *gin.Context) {
+	var params v1dto.GetAllTagParams
 	if err := ctx.ShouldBindQuery(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
@@ -43,25 +43,25 @@ func (ch *CertificateHandler) GetAllCertificates(ctx *gin.Context) {
 		params.Limit = 20
 	}
 
-	certificates, totalRecords, err := ch.service.GetAllCertificates(params)
+	tags, totalRecords, err := ch.service.GetAllTags(params)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
 
-	paginationResponse := utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, certificates)
+	paginationResponse := utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, tags)
 
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", paginationResponse)
 }
 
-func (ch *CertificateHandler) CreateCertificate(ctx *gin.Context) {
-	var params v1dto.CertificateParamsInput
+func (ch *TagHandler) CreateTag(ctx *gin.Context) {
+	var params v1dto.TagParamsInput
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	if err := ch.service.CreateCertificate(params); err != nil {
+	if err := ch.service.CreateTag(params); err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
@@ -69,14 +69,14 @@ func (ch *CertificateHandler) CreateCertificate(ctx *gin.Context) {
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
 
-func (ch *CertificateHandler) EditCertificate(ctx *gin.Context) {
-	var params EditCertificateParams
+func (ch *TagHandler) EditTag(ctx *gin.Context) {
+	var params EditTagParams
 	if err := ctx.ShouldBindUri(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	certificate, err := ch.service.EditCertificate(params.Id)
+	certificate, err := ch.service.EditTag(params.Id)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
@@ -85,14 +85,14 @@ func (ch *CertificateHandler) EditCertificate(ctx *gin.Context) {
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", certificate)
 }
 
-func (ch *CertificateHandler) UpdateCertificate(ctx *gin.Context) {
-	var params v1dto.CertificateParamsUpdate
+func (ch *TagHandler) UpdateTag(ctx *gin.Context) {
+	var params v1dto.TagParamsUpdate
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	if err := ch.service.UpdateCertificate(params); err != nil {
+	if err := ch.service.UpdateTag(params); err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
@@ -100,4 +100,4 @@ func (ch *CertificateHandler) UpdateCertificate(ctx *gin.Context) {
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
 
-func (ch *CertificateHandler) DeleteCertificate(ctx *gin.Context) {}
+func (ch *TagHandler) DeleteTag(ctx *gin.Context) {}
