@@ -118,7 +118,7 @@ func RoleRequired(allowRoles int) gin.HandlerFunc {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "Authorization header missing or invalid.",
 			})
-			return 
+			return
 		}
 
 		payload := val.(*v1dto.EncryptedPayload)
