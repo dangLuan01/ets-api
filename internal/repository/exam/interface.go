@@ -8,7 +8,7 @@ import (
 
 type ExamRepository interface {
 	// --- REPO CLIENT ---
-	FindExamById(examId int) (models.Exam, error)
+	FindExamBySlug(examSlug string) (models.Exam, error)
 	FindExamQuestionMappingById(examId int) ([]models.ExamQuestionMapping, error)
 	FindQuesionByIds(singleIDs []int) ([]models.Question, error)
 	FindGroupQuestionByIds(groupIDs []int) ([]models.QuestionGroup, error)
@@ -22,10 +22,10 @@ type ExamRepository interface {
 	FindExamsByFilter(params v1dto.FilterExamParams) ([]v1dto.ExamFilterDTO, int64, error)
 	FindFeaturedExams(params v1dto.ExamFeaturedParams) ([]v1dto.ExamFeaturedRaw, int64, error)
 	// --- REPO ADMIN (CRUD EXAM) ---
+	FindExamById(examId int) (models.Exam, error)
 	FindAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64, error)
 	CreateExam(exam v1dto.CreateExamInputParams) error
 	GetExamById(examId int) (models.ExamModel, error)
-
 	//UpdateExam(examId int, params v1dto.UpdateExamInputParams) error
 	UpdateExam(tx *goqu.TxDatabase, examId int, data goqu.Record) error
 	DeleteExamCategories(tx *goqu.TxDatabase, examId int) error
@@ -34,7 +34,6 @@ type ExamRepository interface {
 	DeleteExamQuestions(tx *goqu.TxDatabase, examId int) error
 	GetTargetExamQuestions(targetExamId int, partId []int) ([]models.TargetExamMapping, error)
 	InsertExamQuestions(tx *goqu.TxDatabase, rows []models.TargetExamMapping) error
-
 
 	FindExamQuestionMappingByPartId(examId int, partId int) ([]v1dto.ExamQuestionMappingDTO, error)
 	UpdateQuestionSingle(params v1dto.UpdateQuestionSingleInputParams) error

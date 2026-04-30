@@ -90,7 +90,7 @@ func (ur *SqlUserRepository) Delete(uuid uuid.UUID) error {
 
 	return fmt.Errorf("user not found")
 }
-func (ur *SqlUserRepository) FindByEmail(email string) (models.User, bool, error) {
+func (ur *SqlUserRepository) FindExistByEmail(email string) (models.User, bool, error) {
 	
 	ds := ur.db.From(goqu.T("users")).Where(
 		goqu.C("email").Eq(email),
@@ -102,11 +102,11 @@ func (ur *SqlUserRepository) FindByEmail(email string) (models.User, bool, error
 		return models.User{}, false, err
 	}
 	
-	if !found {
-		return models.User{}, false, nil
+	if found {
+		return user, true, nil
 	}
 
-	return user, true, err
+	return models.User{}, false, err
 }
 
 func (ur *SqlUserRepository) UpdatePassword(uuid, password string) error {

@@ -1,7 +1,6 @@
 package v1service
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"github.com/dangLuan01/ets-api/pkg/auth"
 	"github.com/dangLuan01/ets-api/pkg/cache"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/time/rate"
 )
@@ -98,7 +98,7 @@ func (as *authService) Login(ctx *gin.Context, email, password string) (string, 
 	}
 
 	email = utils.NormailizeString(email)
-	user, existed, err := as.userRepo.FindByEmail(email)
+	user, existed, err := as.userRepo.FindExistByEmail(email)
 
 	if err != nil {
 		as.getLoginAttempt(ip)
@@ -208,39 +208,29 @@ func (as *authService) RefreshToken(ctx *gin.Context, refreshTokenString string)
 	return  accessToken, refreshToken.Token, int(auth.AccessTokenTTL.Seconds()), nil
 }
 
-func (as *authService) Register(ctx *gin.Context, input v1dto.RegisterInput) error {
-
-	rateLimitKey := fmt.Sprintf("code:ratelimit:%s", input.Email)
-
-	if exists, err := as.cache.Exits(rateLimitKey); exists && err == nil {
-		return utils.NewError(string(utils.ErrCodeTooManyRequest), "Wait before requesting anorther code")
+func (as *authService) Register(ctx *gin.Context, userInput v1dto.RegisterInput) error {
+	email := utils.NormailizeString(userInput.Email)
+	_, exists, err := as.userRepo.FindExistByEmail(email)
+	if err != nil {
+		return utils.WrapError(string(utils.ErrCodeInternal), "Failed check user exists.", err)
 	}
 
-	email := utils.NormailizeString(input.Email)
-	user, _, err := as.userRepo.FindByEmail(email)
-	if err != nil || user.Email != "" {
-		return utils.NewError(string(utils.ErrCodeConflict), "Email existsing!")
+	if exists {
+		return utils.NewError(string(utils.ErrCodeConflict), "User existing.")
 	}
 	
-	code, err := utils.GenerateRandomInt(6)
-	if err != nil {
-		return utils.NewError(string(utils.ErrCodeInternal), "Unable error generate otp.")
-	}
-
-	codeKey := fmt.Sprintf("code:%s", code)
-	hashPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(userInput.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return utils.NewError(string(utils.ErrCodeInternal), "Unable error hash password.")
 	}
 
-	input.Password = string(hashPassword)
-	if err := as.cache.Set(codeKey, input, MaxCodeAttempt); err != nil{
-		return utils.NewError(string(utils.ErrCodeInternal), "Unable error store otp")
-	}
+	userInput.Password = string(hashPassword)
 
-	err = as.cache.Set(rateLimitKey, "1", 2 * time.Minute)
-	if err != nil {
-		return utils.NewError(string(utils.ErrCodeInternal), "Failed to store rate limit code otp")
+	uuidUser := uuid.New()
+	userModel := v1dto.RegisterDTOToModel(uuidUser, userInput)
+
+	if err := as.userRepo.Create(userModel); err != nil {
+		return utils.WrapError(string(utils.ErrCodeInternal), "Failed to store user.", err)
 	}
 
 	return nil

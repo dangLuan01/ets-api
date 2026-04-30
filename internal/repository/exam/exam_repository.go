@@ -36,13 +36,14 @@ func NewSqlExamRepository(DB *goqu.Database) ExamRepository {
 	}
 }
 
-func (rt *SqlExamRepository) FindExamById(examId int) (models.Exam, error) {
+func (rt *SqlExamRepository) FindExamBySlug(examSlug string) (models.Exam, error) {
 	var exam models.Exam
 
 	found, err := rt.db.From(goqu.T(TABLE_EXAM).As("e")).
 	Select(
 		goqu.I("e.id"),
 		goqu.I("e.cert_id"),
+		goqu.I("e.slug"),
 		goqu.I("e.title"),
 		goqu.I("e.year"),
 		goqu.I("e.total_time"),
@@ -55,7 +56,41 @@ func (rt *SqlExamRepository) FindExamById(examId int) (models.Exam, error) {
 		goqu.I("s.code").As("cert_code"),
 	).
 	Join(goqu.T(TABLE_CERTIFICATE).As("s"), goqu.On(goqu.I("s.id").Eq(goqu.I("e.cert_id")))).
-	Where(goqu.I("e.id").Eq(examId)).ScanStruct(&exam)
+	Where(goqu.I("e.slug").Eq(examSlug)).ScanStruct(&exam)
+	
+	if !found && err == nil {
+		return models.Exam{}, utils.NewError(string(utils.ErrCodeNotFound), "Not found exam.")
+	}
+
+	if err != nil {
+		
+		return models.Exam{}, err
+	}
+
+	return exam, nil
+}
+
+func (rt *SqlExamRepository) FindExamById(examId int) (models.Exam, error) {
+	var exam models.Exam
+
+	found, err := rt.db.From(goqu.T(TABLE_EXAM).As("e")).
+	Select(
+		goqu.I("e.id"),
+		goqu.I("e.cert_id"),
+		goqu.I("e.slug"),
+		goqu.I("e.title"),
+		goqu.I("e.year"),
+		goqu.I("e.total_time"),
+		goqu.I("e.total_question"),
+		goqu.I("e.description"),
+		goqu.I("e.thumbnail"),
+		goqu.I("e.audio_full_url"),
+		goqu.I("e.status"),
+		goqu.I("e.created_at"),
+		goqu.I("s.code").As("cert_code"),
+	).
+	Join(goqu.T(TABLE_CERTIFICATE).As("s"), goqu.On(goqu.I("s.id").Eq(goqu.I("e.cert_id")))).
+	Where(goqu.I("e.slug").Eq(examId)).ScanStruct(&exam)
 	
 	if !found && err == nil {
 		return models.Exam{}, utils.NewError(string(utils.ErrCodeNotFound), "Not found exam.")

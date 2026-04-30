@@ -55,7 +55,7 @@ func (us *userService) GetUserByUUID(ctx *gin.Context) (models.User, error) {
 
 func (us *userService) CreateUser(user models.User) (models.User, error) {
 	user.Email = utils.NormailizeString(user.Email)
-	if user, existed, err := us.repo.FindByEmail(user.Email); err == nil && existed {
+	if user, existed, err := us.repo.FindExistByEmail(user.Email); err == nil && existed {
 		
 		return models.User{}, utils.NewError(
 			string(utils.ErrCodeConflict), 
@@ -86,7 +86,7 @@ func (us *userService) CreateUser(user models.User) (models.User, error) {
 }
 func (us *userService) UpdateUser(uuid uuid.UUID, user models.User) (models.User, error) {
 	user.Email = utils.NormailizeString(user.Email)
-	if u, _, err := us.repo.FindByEmail(user.Email); err != nil && u.UUID != uuid{
+	if u, _, err := us.repo.FindExistByEmail(user.Email); err != nil && u.UUID != uuid{
 		
 		return models.User{}, utils.NewError(
 			string(utils.ErrCodeConflict), 
