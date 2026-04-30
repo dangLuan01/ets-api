@@ -20,6 +20,7 @@ type Exam struct {
 	CertificateId	int						`json:"-" db:"cert_id"`
 	CertCode		string					`json:"cert_code" db:"cert_code"`
 	Title 			string 					`json:"title" db:"title"`
+	Slug 			string 					`json:"slug" db:"slug"`
 	Year 			int 					`json:"year" db:"year"`
 	TotalTime 		int 					`json:"total_time" db:"total_time"`
 	TotalQuestion	int						`json:"total_question" db:"total_question"`

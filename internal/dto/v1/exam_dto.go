@@ -12,7 +12,7 @@ type GetAllExamParams struct {
 }
 
 type QuestionAnswerInputParams struct {
-	ExamId 		int 				`json:"exam_id"`
+	ExamSlug 	string 				`json:"exam_slug"`
 	Answers 	[]UserAnswerInput 	`json:"answers"`
 }
 
@@ -42,6 +42,7 @@ type DetailExamScoreDTO struct {
 type CreateExamInputParams struct {
 	CertificateId	int				`json:"cert_id" db:"cert_id" binding:"required"`
 	Title 			string 			`json:"title" db:"title" binding:"required"`
+	Slug 			string 			`json:"slug" db:"slug" binding:"required"`
 	Year 			int 			`json:"year" db:"year" binding:"required"`
 	TotalQuestion 	int 			`json:"total_question" db:"total_question" binding:"required"`
 	TotalTime 		int 			`json:"total_time" db:"total_time" binding:"required"`
@@ -55,6 +56,7 @@ type UpdateExamInputParams struct {
 	Id				int				`json:"id" db:"id" binding:"required"`
 	CertificateId	int				`json:"cert_id" db:"cert_id" binding:"required"`
 	Title 			string 			`json:"title" db:"title" binding:"required"`
+	Slug 			string 			`json:"slug" db:"slug" binding:"required"`
 	Year 			int 			`json:"year" db:"year" binding:"required"`
 	TotalQuestion 	int 			`json:"total_question" db:"total_question" binding:"required"`
 	TotalTime 		int 			`json:"total_time" db:"total_time" binding:"required"`

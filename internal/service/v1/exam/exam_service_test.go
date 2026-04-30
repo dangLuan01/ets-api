@@ -58,7 +58,7 @@ func (m *mockExamRepo) SaveAttemptWithAnswers(
 }
 
 /* Các method không dùng → stub rỗng */
-
+func (m *mockExamRepo) FindExamBySlug(examSlug string) (models.Exam, error)
 func (m *mockExamRepo) FindExamQuestionMappingById(int) ([]models.ExamQuestionMapping, error)
 func (m *mockExamRepo) FindQuesionByIds([]int) ([]models.Question, error)
 func (m *mockExamRepo) FindGroupQuestionByIds([]int) ([]models.QuestionGroup, error)
@@ -88,7 +88,7 @@ func TestCalculateScoreExam_Success(t *testing.T) {
     service := &examService{repo: repo}
 
     params := v1dto.QuestionAnswerInputParams{
-        ExamId: 1,
+        ExamSlug: "",
         Answers: []v1dto.UserAnswerInput{
             {QuestionId: 1, SelectedAnswer: "A"}, // đúng
             {QuestionId: 2, SelectedAnswer: "B"}, // đúng

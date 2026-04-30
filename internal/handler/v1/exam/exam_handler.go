@@ -18,6 +18,10 @@ type GetIdExamParams struct {
 	Id int `uri:"id" binding:"required"`
 }
 
+type GetSlugExamParams struct {
+	Slug string `uri:"slug" binding:"required"`
+}
+
 type GetExamPartParams struct {
 	ExamId int `uri:"id" binding:"required"`
 	PartId int `uri:"part_id" binding:"required"`
@@ -29,14 +33,14 @@ func NewExamHandler(service v1service.ExamService) *ExamHandler {
 	}
 }
 
-func (eh *ExamHandler) FindExamById(ctx *gin.Context) {
-	var params GetIdExamParams
+func (eh *ExamHandler) FindExamBySlug(ctx *gin.Context) {
+	var params GetSlugExamParams
 	if err := ctx.ShouldBindUri(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	exam, err := eh.service.FindExamById(params.Id)
+	exam, err := eh.service.FindExamBySlug(params.Slug)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return

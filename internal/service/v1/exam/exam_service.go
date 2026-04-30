@@ -36,14 +36,14 @@ func NewExamService(repo repositoryExam.ExamRepository, DB *goqu.Database, repoP
 	}
 }
 
-func (es *examService) FindExamById(examId int) (models.Exam, error) {
+func (es *examService) FindExamBySlug(examSlug string) (models.Exam, error) {
 
-	exam, err := es.repo.FindExamById(examId)
+	exam, err := es.repo.FindExamBySlug(examSlug)
 	if err != nil {
 		return models.Exam{}, err
 	}
 
-	sections, err := es.repo.FindExamQuestionMappingById(examId)
+	sections, err := es.repo.FindExamQuestionMappingById(exam.Id)
 	if err != nil {
 		return models.Exam{}, err
 	}
@@ -65,7 +65,7 @@ func (es *examService) FindExamById(examId int) (models.Exam, error) {
 	groupMap 		:= make(map[int]*models.QuestionGroup)
 
 	directionMap 	:= make(map[int]models.Direction)
-	directions, err := es.repoPartDirection.FindDirectionByExamId(examId)
+	directions, err := es.repoPartDirection.FindDirectionByExamId(exam.Id)
 	if err == nil {
 		for i := range directions {
 			d := &directions[i]
@@ -261,7 +261,9 @@ func (es *examService) CalculateScoreExam(ctx *gin.Context, params v1dto.Questio
 		userAnswerMap[ans.QuestionId] = ans.SelectedAnswer
 	}
 
-	correctAnswer, err := es.repo.GetCorrectAnswersWithSkillContext(params.ExamId, questionIds)
+	exam, _ := es.repo.FindExamBySlug(params.ExamSlug)
+
+	correctAnswer, err := es.repo.GetCorrectAnswersWithSkillContext(exam.Id, questionIds)
 	if err != nil {
 		return v1dto.DetailExamScore{}, err
 	}
@@ -294,7 +296,7 @@ func (es *examService) CalculateScoreExam(ctx *gin.Context, params v1dto.Questio
 		})
 	}
 	
-	exam, _ := es.repo.FindExamById(params.ExamId)
+	
 	conversionTable, _ := es.repo.GetScoreConversionTable(exam.CertificateId)
 
 	finalSkillScores := make(map[int]int)
@@ -310,7 +312,7 @@ func (es *examService) CalculateScoreExam(ctx *gin.Context, params v1dto.Questio
 	 
 		if err = es.repo.SaveAttemptWithAnswers(models.UserAttempt{
 			UserId: userLoged.UserUUID.String(),
-			ExamId: params.ExamId,
+			ExamId: exam.Id,
 			StartTime: time.Now().Format(time.DateTime),
 			EndTime: time.Now().Format(time.DateTime),
 			TotalScore: totalScore,
@@ -382,6 +384,7 @@ func (es *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
 	
 	updateData := goqu.Record{
         "title":          params.Title,
+		"slug":           params.Slug,
         "year":           params.Year,
         "cert_id":        params.CertificateId,
         "total_question": params.TotalQuestion,
