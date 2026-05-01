@@ -90,7 +90,7 @@ func (rt *SqlExamRepository) FindExamById(examId int) (models.Exam, error) {
 		goqu.I("s.code").As("cert_code"),
 	).
 	Join(goqu.T(TABLE_CERTIFICATE).As("s"), goqu.On(goqu.I("s.id").Eq(goqu.I("e.cert_id")))).
-	Where(goqu.I("e.slug").Eq(examId)).ScanStruct(&exam)
+	Where(goqu.I("e.id").Eq(examId)).ScanStruct(&exam)
 	
 	if !found && err == nil {
 		return models.Exam{}, utils.NewError(string(utils.ErrCodeNotFound), "Not found exam.")
