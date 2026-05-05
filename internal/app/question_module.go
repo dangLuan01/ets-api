@@ -14,10 +14,10 @@ type QuestionModule struct {
 
 func NewQuestionModule(ctx *ModuleContext) *QuestionModule {
 
-	questionRepo := repository.NewSqlQuestionRepository(ctx.DB)
+	questionRepo 	:= repository.NewSqlQuestionRepository(ctx.DB)
 	questionService := v1service.NewQuestionService(questionRepo)
 	questionHandler := v1handler.NewQuestionHandler(questionService)
-	questionRoutes := v1routes.NewQuestionRoutes(questionHandler)
+	questionRoutes 	:= v1routes.NewQuestionRoutes(questionHandler)
 
 	return &QuestionModule{
 		routes: questionRoutes,

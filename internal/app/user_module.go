@@ -2,9 +2,9 @@ package app
 
 import (
 	v1handler "github.com/dangLuan01/ets-api/internal/handler/v1/user"
-	"github.com/dangLuan01/ets-api/internal/repository/user"
+	repository "github.com/dangLuan01/ets-api/internal/repository/user"
 	"github.com/dangLuan01/ets-api/internal/routes"
-	v1routes "github.com/dangLuan01/ets-api/internal/routes/v1"
+	v1routes "github.com/dangLuan01/ets-api/internal/routes/v1/client"
 	v1service "github.com/dangLuan01/ets-api/internal/service/v1/user"
 )
 
@@ -14,10 +14,10 @@ type UserModule struct {
 
 func NewUserModule(ctx *ModuleContext) *UserModule {
 
-	userRepo := repository.NewSqlUserRepository(ctx.DB)
+	userRepo 	:= repository.NewSqlUserRepository(ctx.DB)
 	userService := v1service.NewUserService(userRepo)
 	UserHandler := v1handler.NewUserHandler(userService)
-	userRoutes := v1routes.NewUserRoutes(UserHandler)
+	userRoutes 	:= v1routes.NewUserRoutes(UserHandler)
 
 	return &UserModule{
 		routes: userRoutes,

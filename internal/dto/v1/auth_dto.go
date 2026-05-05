@@ -21,9 +21,10 @@ type RefreshTokenInput struct {
 }
 
 type RegisterInput struct {
-	UserName 		string `json:"username" binding:"required,max=50"`
-	Email 	 		string `json:"email" binding:"required,email,max=50"`
-	Password 		string `json:"password" binding:"required,min=8"`
+	UserName 		string 	`json:"username" binding:"required,max=50"`
+	Email 	 		string 	`json:"email" binding:"required,email,max=50"`
+	Password 		string 	`json:"password" binding:"required,min=8"`
+	Target 			int 	`json:"target" binding:"required,min=10,max=990"`
 }
 
 type RequestOTPInput struct {
@@ -42,6 +43,7 @@ func RegisterDTOToModel(uuid uuid.UUID, user RegisterInput) models.User {
 		UserName: user.UserName,
 		Email: user.Email,
 		PasswordHash: user.Password,
+		Target: user.Target,
 		Role: 2,
 		Status: 1,
 	}

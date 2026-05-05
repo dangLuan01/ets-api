@@ -14,10 +14,10 @@ type CategoryModule struct {
 
 func NewCategoryModule(ctx *ModuleContext) *CategoryModule {
 
-	categoryRepo := repository.NewSqlCategoryRepository(ctx.DB)
+	categoryRepo 	:= repository.NewSqlCategoryRepository(ctx.DB)
 	categoryService := v1service.NewCategoryService(categoryRepo)
 	categoryHandler := v1handler.NewCategoryHandler(categoryService)
-	categoryRoutes := v1routes.NewCategoryRoutes(categoryHandler)
+	categoryRoutes 	:= v1routes.NewCategoryRoutes(categoryHandler)
 
 	return &CategoryModule{
 		routes: categoryRoutes,

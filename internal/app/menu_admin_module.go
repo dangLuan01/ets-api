@@ -14,10 +14,10 @@ type MenuAdminModule struct {
 
 func NewMenuAdminModule(ctx *ModuleContext) *MenuAdminModule {
 
-	menuRepo := repository.NewSqlMenuRepository(ctx.DB)
+	menuRepo 	:= repository.NewSqlMenuRepository(ctx.DB)
 	menuService := v1service.NewMenuService(menuRepo)
 	menuHandler := v1handler.NewMenuHandler(menuService)
-	menuRoutes := v1routes.NewMenuAdminRoutes(menuHandler)
+	menuRoutes 	:= v1routes.NewMenuAdminRoutes(menuHandler)
 
 	return &MenuAdminModule{
 		routes: menuRoutes,

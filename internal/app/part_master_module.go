@@ -14,10 +14,10 @@ type PartMasterModule struct {
 
 func NewPartMasterModule(ctx *ModuleContext) *PartMasterModule {
 
-	partMasterRepo := repository.NewSqlPartMasterRepository(ctx.DB)
-	partMasterService := v1service.NewPartMasterService(partMasterRepo)
-	partMasterHandler := v1handler.NewPartMasterHandler(partMasterService)
-	partMasterRoutes := v1routes.NewPartMasterRoutes(partMasterHandler)
+	partMasterRepo		:= repository.NewSqlPartMasterRepository(ctx.DB)
+	partMasterService 	:= v1service.NewPartMasterService(partMasterRepo)
+	partMasterHandler 	:= v1handler.NewPartMasterHandler(partMasterService)
+	partMasterRoutes 	:= v1routes.NewPartMasterRoutes(partMasterHandler)
 
 	return &PartMasterModule{
 		routes: partMasterRoutes,

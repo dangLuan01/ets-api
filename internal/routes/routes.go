@@ -57,6 +57,8 @@ func RegisterRoute(r *gin.Engine, authService auth.TokenService, cacheService ca
 			route.Register(v1api)
 		case *v1routesClient.TagRoutes:
 			route.Register(v1api)
+		case *v1routesClient.UserRoutes:
+			route.Register(v1api)
 		default:
 			route.Register(protected)
 		}

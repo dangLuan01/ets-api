@@ -45,12 +45,11 @@ func (ur *SqlUserRepository) FindBYUUID(uuid string) (models.User, error) {
 		goqu.C("uuid").Eq(uuid),
 	).
 	Select(
-		goqu.I("uuid"),
 		goqu.I("username"),
 		goqu.I("email"),
-		goqu.I("role"),
-		goqu.I("status"),
+		goqu.I("target"),
 	)
+	
 	var user models.User
 
 	found, err := ds.ScanStruct(&user)

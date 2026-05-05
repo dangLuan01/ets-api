@@ -14,10 +14,10 @@ type PostModule struct {
 
 func NewPostModule(ctx *ModuleContext) *PostModule {
 
-	postRepo := repository.NewSqlPostRepository(ctx.DB)
+	postRepo 	:= repository.NewSqlPostRepository(ctx.DB)
 	postService := v1service.NewPostService(postRepo, ctx.DB)
 	postHandler := v1handler.NewPostHandler(postService)
-	postRoutes := v1routes.NewPostRoutes(postHandler)
+	postRoutes 	:= v1routes.NewPostRoutes(postHandler)
 
 	return &PostModule{
 		routes: postRoutes,

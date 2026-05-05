@@ -343,7 +343,7 @@ func (rt *SqlExamRepository) SaveAttemptWithAnswers(attempt models.UserAttempt, 
 			"attempt_id": attemptId,
 			"question_id": ans.QuestionId,
 			"selected_answer": ans.SelectedAnswer,
-			"is_correct": ans.IsCorrect,
+			// "is_correct": ans.IsCorrect,
 		}
 	}
 
@@ -662,6 +662,7 @@ func (er *SqlExamRepository) FindExamsByFilter(params v1dto.FilterExamParams) ([
 		Select(
 			goqu.I("e.id"),
 			goqu.I("e.title"),
+			goqu.I("e.slug"),
 			goqu.I("cf.slug").As("cert_slug"),
 			goqu.I("e.year"),
 			goqu.I("e.total_time"),

@@ -9,7 +9,10 @@ import (
 type ExamService interface {
 	// --- SERVICE CLIENT ---
 	FindExamBySlug(examSlug string) (models.Exam, error)
+	StoreUserAttempt(ctx *gin.Context, params v1dto.UserAttemptInputParams) (int64, error)
+	UpsertUserAnswer(ctx *gin.Context, params v1dto.UserAnswerInput) error
 	CalculateScoreExam(ctx *gin.Context, params v1dto.QuestionAnswerInputParams) (v1dto.DetailExamScore, error)
+	GetExamResume(ctx *gin.Context, slug string) (v1dto.ExamResumeDTO, error)
 	GetFilterStructure() ([]*v1dto.FilterStructure, error)
 	FilterExam(params v1dto.FilterExamParams) ([]v1dto.ExamFilterDTO, int64, error)
 	GetFeaturedExams(params v1dto.ExamFeaturedParams) (v1dto.FeaturedDTO, int64, error)

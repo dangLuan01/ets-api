@@ -14,10 +14,10 @@ type TagAdminModule struct {
 
 func NewTagAdminModule(ctx *ModuleContext) *TagAdminModule {
 
-	tagRepo := repository.NewSqlTagRepository(ctx.DB)
-	tagService := v1service.NewTagService(tagRepo)
-	tagHandler := v1handler.NewTagHandler(tagService)
-	tagRoutes := v1routes.NewTagAdminRoutes(tagHandler)
+	tagRepo 	:= repository.NewSqlTagRepository(ctx.DB)
+	tagService 	:= v1service.NewTagService(tagRepo)
+	tagHandler 	:= v1handler.NewTagHandler(tagService)
+	tagRoutes 	:= v1routes.NewTagAdminRoutes(tagHandler)
 
 	return &TagAdminModule{
 		routes: tagRoutes,

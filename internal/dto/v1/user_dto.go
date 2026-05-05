@@ -1,19 +1,14 @@
 package v1dto
 
 import (
-	"time"
-
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/google/uuid"
 )
 
 type UserDTO struct {
-	UserName   		string 		`json:"user_name"`
+	UserName   		string 		`json:"username"`
 	Email  			string 		`json:"email"`
-	Role  			string 		`json:"role"`
-	Status 			string 		`json:"status"`
-	Expried_date 	*time.Time	`json:"expried_date"`
-	Is_Member		int			`json:"is_member"`
+	Target			int			`json:"target"`
 }
 
 type CreateUserInput struct {
@@ -68,8 +63,7 @@ func MapUserDTO(user models.User) *UserDTO {
 	return &UserDTO{
 		UserName: user.UserName,
 		Email: user.Email,
-		Role: formatLevel(user.Role),
-		Status: formatStatus(user.Status),
+		Target: user.Target,
 	}
 }
 

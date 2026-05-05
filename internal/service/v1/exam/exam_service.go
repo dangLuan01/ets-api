@@ -14,6 +14,7 @@ import (
 	repositoryExam "github.com/dangLuan01/ets-api/internal/repository/exam"
 	repositoryPartDirection "github.com/dangLuan01/ets-api/internal/repository/part_direction"
 	repositoryQuestion "github.com/dangLuan01/ets-api/internal/repository/question"
+	repositoryUserAttempt "github.com/dangLuan01/ets-api/internal/repository/user_attempt"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gin-gonic/gin"
@@ -25,14 +26,22 @@ type examService struct {
 	repo repositoryExam.ExamRepository
 	repoPartDirection repositoryPartDirection.PartDirectionRepository
 	repoQuestion repositoryQuestion.QuestionRepository
+	repoAttempt repositoryUserAttempt.UserAttemptRepository
 }
 
-func NewExamService(repo repositoryExam.ExamRepository, DB *goqu.Database, repoPartDirection repositoryPartDirection.PartDirectionRepository, repoQuestion repositoryQuestion.QuestionRepository) ExamService {
+func NewExamService(
+	repo repositoryExam.ExamRepository, 
+	DB *goqu.Database, 
+	repoPartDirection repositoryPartDirection.PartDirectionRepository, 
+	repoQuestion repositoryQuestion.QuestionRepository,
+	repoAttempt repositoryUserAttempt.UserAttemptRepository) ExamService {
+
 	return &examService{
 		db: DB,
 		repo: repo,
 		repoPartDirection: repoPartDirection,
 		repoQuestion: repoQuestion,
+		repoAttempt: repoAttempt,
 	}
 }
 
@@ -251,6 +260,38 @@ func (es *examService) FindExamBySlug(examSlug string) (models.Exam, error) {
 	return exam, nil
 }
 
+func (es *examService) StoreUserAttempt(ctx *gin.Context, params v1dto.UserAttemptInputParams) (int64, error) {
+	if user, exists := utils.GetUserLogged(ctx); exists {
+		return es.repoAttempt.UpsertUserAttempt(
+			models.UserAttempt{
+				UserId: user.UserUUID.String(),
+				ExamSlug: params.ExamSlug,
+				StartTime: time.Now().Format(time.DateTime),
+				EndTime: nil,
+				Status: 1,
+			},
+		)
+	}
+
+	return 0, nil
+}
+
+func (es *examService) UpsertUserAnswer(ctx *gin.Context, params v1dto.UserAnswerInput) error {
+	if _, exists := utils.GetUserLogged(ctx); !exists {
+		return utils.NewError(string(utils.ErrCodeUnauthorized), "User unauthorized.")	
+	}
+
+	if err := es.repoAttempt.UpdateTimeSpentSecAttempt(int64(params.AttemptId), params.TimeSpentSec); err != nil {
+		return err
+	}
+
+	return es.repoAttempt.UpsertUserAnswer(models.UserAnswer{
+		AttemptId: params.AttemptId,
+		QuestionId: params.QuestionId,
+		SelectedAnswer: params.SelectedAnswer,
+	})
+}
+
 func (es *examService) CalculateScoreExam(ctx *gin.Context, params v1dto.QuestionAnswerInputParams) (v1dto.DetailExamScore, error) {
 
 	questionIds 	:= make([]int, 0, len(params.Answers))
@@ -269,33 +310,32 @@ func (es *examService) CalculateScoreExam(ctx *gin.Context, params v1dto.Questio
 	}
 	
 	rawScores := make(map[int]int)
-	var detailsAnswers []models.UserAnswer
+	//var detailsAnswers []models.UserAnswer
 	
 	for _, ca := range correctAnswer {
-		isCorrect := false
+		//isCorrect := false
 		if _, ok := rawScores[ca.SkillId]; !ok {
         	rawScores[ca.SkillId] = 0
     	}
 
 		if userAnswerMap[ca.QuestionId] == ca.CorrectAnswer {
-			isCorrect = true
+			//isCorrect = true
 			rawScores[ca.SkillId]++
 		}
 
-		var selectedAnswer *string
-		if ans, ok := userAnswerMap[ca.QuestionId]; ok && ans != "" {
-			selectedAnswer = &ans
-		} else {
-			selectedAnswer = nil
-		}
+		// var selectedAnswer *string
+		// if ans, ok := userAnswerMap[ca.QuestionId]; ok && ans != "" {
+		// 	selectedAnswer = &ans
+		// } else {
+		// 	selectedAnswer = nil
+		// }
 
-		detailsAnswers = append(detailsAnswers, models.UserAnswer{
-			QuestionId: ca.QuestionId,
-			SelectedAnswer: selectedAnswer,
-			IsCorrect: isCorrect,
-		})
+		// detailsAnswers = append(detailsAnswers, models.UserAnswer{
+		// 	QuestionId: ca.QuestionId,
+		// 	SelectedAnswer: selectedAnswer,
+		// 	IsCorrect: isCorrect,
+		// })
 	}
-	
 	
 	conversionTable, _ := es.repo.GetScoreConversionTable(exam.CertificateId)
 
@@ -308,25 +348,69 @@ func (es *examService) CalculateScoreExam(ctx *gin.Context, params v1dto.Questio
 		totalScore += scaled
 	}
 
-	if userLoged, exists := utils.GetUserLogged(ctx); exists {
-	 
-		if err = es.repo.SaveAttemptWithAnswers(models.UserAttempt{
-			UserId: userLoged.UserUUID.String(),
-			ExamId: exam.Id,
-			StartTime: time.Now().Format(time.DateTime),
-			EndTime: time.Now().Format(time.DateTime),
+	if _, exists := utils.GetUserLogged(ctx); exists {
+		endTime := time.Now().Format(time.DateTime)
+		err := es.repoAttempt.UpdateUserAttempt(params.AttemptId, models.UserAttempt{
+			EndTime: &endTime,
 			TotalScore: totalScore,
 			ListeningScore: finalSkillScores[1],
 			ReadingScore: finalSkillScores[2],
-		}, detailsAnswers); err != nil {
+			Status: 2,
+		})
+		if err != nil {
 			return v1dto.DetailExamScore{}, err
-		}
+		} 
 	}
 
 	return v1dto.DetailExamScore{
 		TotalScore: totalScore,
 		RawScore: rawScores,
 		ScaledScore: finalSkillScores,
+	}, nil
+}
+
+func (es *examService) GetExamResume(ctx *gin.Context, examSlug string) (v1dto.ExamResumeDTO, error) {
+	user, exists := utils.GetUserLogged(ctx);
+	if !exists {
+		return v1dto.ExamResumeDTO{}, utils.NewError(string(utils.ErrCodeUnauthorized), "User unauthorized.")
+	}
+	
+	examResume, foundResume, err := es.repoAttempt.FindExamResume(user.UserUUID.String(), examSlug)
+
+	if !foundResume {
+		return v1dto.ExamResumeDTO{}, err
+	}
+	if err != nil {
+		return v1dto.ExamResumeDTO{}, err
+	}
+
+	answerResume, err := es.repoAttempt.FindAnswerResume(examResume.Id)
+	if err != nil {
+		return v1dto.ExamResumeDTO{}, err
+	}
+
+	answersMap := make(map[string]string)
+	lastViewedQuestionId := 0
+	hasActiveAttempt := false
+
+	if len(answerResume) > 0 {
+		for _, a := range answerResume {
+			answersMap[strconv.Itoa(a.QuestionId)] = a.SelectedAnswer
+		}
+		hasActiveAttempt = true
+		lastViewedQuestionId = answerResume[len(answerResume) - 1].QuestionId
+	}
+
+	return v1dto.ExamResumeDTO{
+		HasActiveAttempt: hasActiveAttempt,
+		Attempt: v1dto.AttemptDTO{
+			Id: examResume.Id,
+			ExamSlug: examResume.ExamSlug,
+			Status: examResume.Status,
+			TimeSpentSec: examResume.TimeSpentSec,
+			LastViewedQuestionId: lastViewedQuestionId,
+			Answers: answersMap,
+		},
 	}, nil
 }
 
