@@ -2,7 +2,6 @@ package repository
 
 import (
 	"github.com/dangLuan01/ets-api/internal/models"
-	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/doug-martin/goqu/v9"
 )
 
@@ -125,7 +124,7 @@ func (rt *SqlUserAttemptRepository) FindExamResume(userId, examSlug string) (mod
 		).ScanStruct(&attempt)
 
 	if !found {
-		return models.ResumeAttempt{}, false, utils.NewError(string(utils.ErrCodeNotFound), "Not found1")
+		return models.ResumeAttempt{}, false, nil
 	}
 
 	if err != nil {

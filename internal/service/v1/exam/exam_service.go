@@ -374,13 +374,15 @@ func (es *examService) GetExamResume(ctx *gin.Context, examSlug string) (v1dto.E
 	if !exists {
 		return v1dto.ExamResumeDTO{}, utils.NewError(string(utils.ErrCodeUnauthorized), "User unauthorized.")
 	}
-	
-	examResume, foundResume, err := es.repoAttempt.FindExamResume(user.UserUUID.String(), examSlug)
 
-	if !foundResume {
-		return v1dto.ExamResumeDTO{}, err
+	examResume, hasActiveAttempt, err := es.repoAttempt.FindExamResume(user.UserUUID.String(), examSlug)
+	if !hasActiveAttempt && err == nil {
+		return v1dto.ExamResumeDTO{
+			HasActiveAttempt: hasActiveAttempt,
+		}, nil
 	}
-	if err != nil {
+
+	if !hasActiveAttempt && err != nil {
 		return v1dto.ExamResumeDTO{}, err
 	}
 
@@ -391,14 +393,16 @@ func (es *examService) GetExamResume(ctx *gin.Context, examSlug string) (v1dto.E
 
 	answersMap := make(map[string]string)
 	lastViewedQuestionId := 0
-	hasActiveAttempt := false
+	
 
 	if len(answerResume) > 0 {
 		for _, a := range answerResume {
 			answersMap[strconv.Itoa(a.QuestionId)] = a.SelectedAnswer
 		}
-		hasActiveAttempt = true
+		
 		lastViewedQuestionId = answerResume[len(answerResume) - 1].QuestionId
+	} else {
+		hasActiveAttempt = false
 	}
 
 	return v1dto.ExamResumeDTO{
