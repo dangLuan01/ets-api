@@ -12,13 +12,21 @@ type GetAllExamParams struct {
 }
 
 type QuestionAnswerInputParams struct {
-	ExamSlug 	string 				`json:"exam_slug"`
+	AttemptId 	int64				`json:"attempt_id"`
+	ExamSlug 	string 				`json:"exam_slug" binding:"required"`
 	Answers 	[]UserAnswerInput 	`json:"answers"`
 }
 
+type UserAttemptInputParams struct {
+	ExamSlug 	string 				`json:"exam_slug" binding:"required"`
+	// Answers 	[]UserAnswerInput 	`json:"answers"`
+}
+
 type UserAnswerInput struct {
-	QuestionId 		int 			`json:"question_id"`
-	SelectedAnswer 	string 			`json:"selected_answer"`
+	AttemptId		int				`json:"attempt_id" binding:"required"`
+	QuestionId 		int 			`json:"question_id" binding:"required"`
+	SelectedAnswer 	string 			`json:"selected_answer" binding:"required,oneof=A B C D"`
+	TimeSpentSec	int				`json:"time_spent_sec" binding:"required"`
 }
 
 type QuestionWithSkill struct {
@@ -40,57 +48,57 @@ type DetailExamScoreDTO struct {
 }
 
 type CreateExamInputParams struct {
-	CertificateId	int				`json:"cert_id" db:"cert_id" binding:"required"`
-	Title 			string 			`json:"title" db:"title" binding:"required"`
-	Slug 			string 			`json:"slug" db:"slug" binding:"required"`
-	Year 			int 			`json:"year" db:"year" binding:"required"`
-	TotalQuestion 	int 			`json:"total_question" db:"total_question" binding:"required"`
-	TotalTime 		int 			`json:"total_time" db:"total_time" binding:"required"`
-	Description 	*string 		`json:"description" db:"description" binding:"omitempty"`
-	Thumbnail 		*string 		`json:"thumbnail" db:"thumbnail" binding:"omitempty"`
-	CategoryIds 		[]int 		`json:"category_ids" db:"-" binding:"required"`
-	AudioFullUrl 	*string			`json:"audio_full_url" db:"audio_full_url" binding:"omitempty"`
+	CertificateId	int						`json:"cert_id" db:"cert_id" binding:"required"`
+	Title 			string 					`json:"title" db:"title" binding:"required"`
+	Slug 			string 					`json:"slug" db:"slug" binding:"required"`
+	Year 			int 					`json:"year" db:"year" binding:"required"`
+	TotalQuestion 	int 					`json:"total_question" db:"total_question" binding:"required"`
+	TotalTime 		int 					`json:"total_time" db:"total_time" binding:"required"`
+	Description 	*string 				`json:"description" db:"description" binding:"omitempty"`
+	Thumbnail 		*string 				`json:"thumbnail" db:"thumbnail" binding:"omitempty"`
+	CategoryIds 		[]int 				`json:"category_ids" db:"-" binding:"required"`
+	AudioFullUrl 	*string					`json:"audio_full_url" db:"audio_full_url" binding:"omitempty"`
 }
 
 type UpdateExamInputParams struct {
-	Id				int				`json:"id" db:"id" binding:"required"`
-	CertificateId	int				`json:"cert_id" db:"cert_id" binding:"required"`
-	Title 			string 			`json:"title" db:"title" binding:"required"`
-	Slug 			string 			`json:"slug" db:"slug" binding:"required"`
-	Year 			int 			`json:"year" db:"year" binding:"required"`
-	TotalQuestion 	int 			`json:"total_question" db:"total_question" binding:"required"`
-	TotalTime 		int 			`json:"total_time" db:"total_time" binding:"required"`
-	Description 	*string 		`json:"description" db:"description"`
-	Thumbnail 		*string 		`json:"thumbnail" db:"thumbnail"`
-	CategoryIds 	[]int 			`json:"category_ids" db:"-"`
-	AudioFullUrl 	*string			`json:"audio_full_url" db:"audio_full_url"`
-	Status 			*int 			`json:"status" db:"status" binding:"required,oneof=0 1"`
-	Target			*Target			`json:"target" db:"-"`
+	Id				int						`json:"id" db:"id" binding:"required"`
+	CertificateId	int						`json:"cert_id" db:"cert_id" binding:"required"`
+	Title 			string 					`json:"title" db:"title" binding:"required"`
+	Slug 			string 					`json:"slug" db:"slug" binding:"required"`
+	Year 			int 					`json:"year" db:"year" binding:"required"`
+	TotalQuestion 	int 					`json:"total_question" db:"total_question" binding:"required"`
+	TotalTime 		int 					`json:"total_time" db:"total_time" binding:"required"`
+	Description 	*string 				`json:"description" db:"description"`
+	Thumbnail 		*string 				`json:"thumbnail" db:"thumbnail"`
+	CategoryIds 	[]int 					`json:"category_ids" db:"-"`
+	AudioFullUrl 	*string					`json:"audio_full_url" db:"audio_full_url"`
+	Status 			*int 					`json:"status" db:"status" binding:"required,oneof=0 1"`
+	Target			*Target					`json:"target" db:"-"`
 }
 
 type Target struct {
-	TargetExamId 	int				`json:"target_exam_id" db:"-"`
-	TargetPartId  	[]int			`json:"target_part_id" db:"-"`
+	TargetExamId 	int						`json:"target_exam_id" db:"-"`
+	TargetPartId  	[]int					`json:"target_part_id" db:"-"`
 }
 
 type ExamStructure struct {
-	ExamId 			int					`json:"exam_id"`
-	ExamName 		string 				`json:"exam_name"`
-	CertCode   		string 				`json:"cert_code"`
-	Blueprint 		[]SkillDTO 			`json:"blueprint"`
-}
+	ExamId 			int						`json:"exam_id"`
+	ExamName 		string 					`json:"exam_name"`
+	CertCode   		string 					`json:"cert_code"`
+	Blueprint 		[]SkillDTO 				`json:"blueprint"`
+}	
 
-type SkillDTO struct {
-	SkillId 		int 				`json:"skill_id"`
-	SkillCode 		string 				`json:"skill_code"`
-	SkillName 		string 				`json:"skill_name"`
-	Parts 			[]PartDTO 			`json:"parts"`
-}
+type SkillDTO struct {	
+	SkillId 		int 					`json:"skill_id"`
+	SkillCode 		string 					`json:"skill_code"`
+	SkillName 		string 					`json:"skill_name"`
+	Parts 			[]PartDTO 				`json:"parts"`
+}	
 
-type PartDTO struct {
-	PartId 			int 				`json:"part_id"`
-	PartName 		string 				`json:"part_name"`
-	PartNumber 		int 				`json:"part_number"`
+type PartDTO struct {	
+	PartId 			int 					`json:"part_id"`
+	PartName 		string 					`json:"part_name"`
+	PartNumber 		int 					`json:"part_number"`
 }
 
 type ExamPart struct {
@@ -151,12 +159,13 @@ type UpdateQuestionGroupInputParams struct {
 		OptionD 		*string 			`json:"option_d,omitempty"`
 		SubOrder 		int 				`json:"sub_order" binding:"required"`
 		Explanation 	*string 			`json:"explanation,omitempty"`
-	} `json:"sub_questions" binding:"required"`
+	} 										`json:"sub_questions" binding:"required"`
 }
 
 type ExamFilterDTO struct {
 	Id 				int 					`json:"id" db:"id"`
 	Title 			string 					`json:"title" db:"title"`
+	Slug 			string 					`json:"slug" db:"slug"`
 	CertSlug		string					`json:"cert_slug" db:"cert_slug"`
 	Year 			int 					`json:"year" db:"year"`
 	TotalTime 		int 					`json:"total_time" db:"total_time"`
@@ -166,9 +175,9 @@ type ExamFilterDTO struct {
 }
 
 type ExamFeaturedParams struct {
-	Type			string	`form:"type" binding:"required"`	
-	Page			int32	`form:"page" binding:"required,min=1"`
-	Limit			int32	`form:"limit" binding:"required,max=50"`
+	Type			string					`form:"type" binding:"required"`	
+	Page			int32					`form:"page" binding:"required,min=1"`
+	Limit			int32					`form:"limit" binding:"required,max=50"`
 }
 
 type ExamFeaturedRaw struct {
@@ -197,6 +206,20 @@ type ExamFeaturedDTO struct {
 	TotalTime 		int 					`json:"total_time" db:"total_time"`
 	TotalQuestion	int						`json:"total_question" db:"total_question"`
 	Thumbnail 		*string 				`json:"thumbnail" db:"thumbnail"`
+}
+
+type ExamResumeDTO struct {
+	HasActiveAttempt 	bool					`json:"has_active_attempt" db:"-"`
+	Attempt 			AttemptDTO				`json:"attempt"`
+}
+
+type AttemptDTO struct {
+	Id 						int					`json:"id" db:"id"`
+	ExamSlug 				string 				`json:"exam_slug" db:"exam_slug"`
+	Status 					int8 				`json:"status" db:"status"`
+	TimeSpentSec 			int 				`json:"time_spent_sec" db:"time_spent_sec"`
+	LastViewedQuestionId 	int 				`json:"last_viewed_question_id" db:"-"`
+	Answers 				map[string]string 	`json:"answers"`
 }
 
 func MapDetailExamScoreDTO(params DetailExamScore) *DetailExamScoreDTO {

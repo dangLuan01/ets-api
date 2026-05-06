@@ -49,6 +49,38 @@ func (eh *ExamHandler) FindExamBySlug(ctx *gin.Context) {
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", exam)
 }
 
+func (eh *ExamHandler) StoreUserAttempt(ctx *gin.Context) {
+	var params v1dto.UserAttemptInputParams
+	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	attemptId, err := eh.service.StoreUserAttempt(ctx, params)
+
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", attemptId)
+}
+
+func (eh *ExamHandler) UpsertUserAnswer(ctx *gin.Context) {
+	var params v1dto.UserAnswerInput
+	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	if err := eh.service.UpsertUserAnswer(ctx, params); err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseStatus(ctx, http.StatusOK)
+}
+
 func (eh *ExamHandler) CalculateScoreExam(ctx *gin.Context) {
 	var params v1dto.QuestionAnswerInputParams
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
@@ -64,6 +96,22 @@ func (eh *ExamHandler) CalculateScoreExam(ctx *gin.Context) {
 	}
 
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", v1dto.MapDetailExamScoreDTO(data))
+}
+
+func (eh *ExamHandler) GetResumeExam(ctx *gin.Context) {
+	var params GetSlugExamParams
+	if err := ctx.ShouldBindUri(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	examResume, err := eh.service.GetExamResume(ctx, params.Slug)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", examResume)
 }
 
 func (eh *ExamHandler) GetFeatured(ctx *gin.Context) {

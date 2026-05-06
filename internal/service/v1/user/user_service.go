@@ -41,13 +41,12 @@ func (us *userService) GetUserByUUID(ctx *gin.Context) (models.User, error) {
 	
 	userLogged, exists := utils.GetUserLogged(ctx)
 	if !exists {
-		return models.User{}, utils.NewError(string(utils.ErrCodeInternal), "Failed get user logged.")
+		return models.User{}, utils.NewError(string(utils.ErrCodeUnauthorized), "User not logged.")
 	}
 
 	user, err := us.repo.FindBYUUID(userLogged.UserUUID.String());
 	if err != nil {
-
-		return models.User{}, utils.NewError(string(utils.ErrCodeNotFound), "No user")
+		return models.User{}, utils.NewError(string(utils.ErrCodeNotFound), "Not found user")
 	}
 	
 	return user, nil

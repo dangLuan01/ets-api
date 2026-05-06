@@ -14,10 +14,10 @@ type PostAdminModule struct {
 
 func NewPostAdminModule(ctx *ModuleContext) *PostAdminModule {
 
-	postRepo := repository.NewSqlPostRepository(ctx.DB)
+	postRepo 	:= repository.NewSqlPostRepository(ctx.DB)
 	postService := v1service.NewPostService(postRepo, ctx.DB)
 	postHandler := v1handler.NewPostHandler(postService)
-	postRoutes := v1routes.NewPostAdminRoutes(postHandler)
+	postRoutes 	:= v1routes.NewPostAdminRoutes(postHandler)
 
 	return &PostAdminModule{
 		routes: postRoutes,

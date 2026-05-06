@@ -14,10 +14,10 @@ type SkillModule struct {
 
 func NewSkillModule(ctx *ModuleContext) *SkillModule {
 
-	skillRepo := repository.NewSqlSkillRepository(ctx.DB)
-	skillService := v1service.NewSkillService(skillRepo)
-	skillHandler := v1handler.NewSkillHandler(skillService)
-	skillRoutes := v1routes.NewSkillRoutes(skillHandler)
+	skillRepo 		:= repository.NewSqlSkillRepository(ctx.DB)
+	skillService 	:= v1service.NewSkillService(skillRepo)
+	skillHandler 	:= v1handler.NewSkillHandler(skillService)
+	skillRoutes 	:= v1routes.NewSkillRoutes(skillHandler)
 
 	return &SkillModule{
 		routes: skillRoutes,

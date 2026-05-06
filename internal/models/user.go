@@ -9,6 +9,7 @@ type User struct {
 	UserName  		string 		`db:"username"`
 	Email     		string 		`db:"email"`
 	PasswordHash  	string 		`db:"password_hash"`
+	Target     		int 		`db:"target"`
 	Role     		int8   		`db:"role"`
 	Status    		int8   		`db:"status"`
 }

@@ -14,10 +14,10 @@ type CertificateModule struct {
 
 func NewCertificateModule(ctx *ModuleContext) *CertificateModule {
 
-	certificateRepo := repository.NewSqlCertificateRepository(ctx.DB)
-	certificateService := v1service.NewCertificateService(certificateRepo)
-	certificateHandler := v1handler.NewCertificateHandler(certificateService)
-	certificateRoutes := v1routes.NewCertificateRoutes(certificateHandler)
+	certificateRepo 	:= repository.NewSqlCertificateRepository(ctx.DB)
+	certificateService 	:= v1service.NewCertificateService(certificateRepo)
+	certificateHandler 	:= v1handler.NewCertificateHandler(certificateService)
+	certificateRoutes 	:= v1routes.NewCertificateRoutes(certificateHandler)
 
 	return &CertificateModule{
 		routes: certificateRoutes,

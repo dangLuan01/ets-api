@@ -5,6 +5,7 @@ import (
 	repositoryExam "github.com/dangLuan01/ets-api/internal/repository/exam"
 	repositoryPartDirection "github.com/dangLuan01/ets-api/internal/repository/part_direction"
 	repositoryQuestion "github.com/dangLuan01/ets-api/internal/repository/question"
+	repositoryUserAttempt "github.com/dangLuan01/ets-api/internal/repository/user_attempt"
 	"github.com/dangLuan01/ets-api/internal/routes"
 	v1routes "github.com/dangLuan01/ets-api/internal/routes/v1/client"
 	v1service "github.com/dangLuan01/ets-api/internal/service/v1/exam"
@@ -15,12 +16,13 @@ type ExamClientModule struct {
 }
 
 func NewExamClientModule(ctx *ModuleContext) *ExamClientModule {
-	partDirectionRepo := repositoryPartDirection.NewSqlPartDirectionRepository(ctx.DB)
-	questionRepository := repositoryQuestion.NewSqlQuestionRepository(ctx.DB)
-	examRepo := repositoryExam.NewSqlExamRepository(ctx.DB)
-	examService := v1service.NewExamService(examRepo, ctx.DB, partDirectionRepo, questionRepository)
-	examHandler := v1handler.NewExamHandler(examService)
-	examRoutes := v1routes.NewExamRoutes(examHandler)
+	partDirectionRepo 	:= repositoryPartDirection.NewSqlPartDirectionRepository(ctx.DB)
+	questionRepository 	:= repositoryQuestion.NewSqlQuestionRepository(ctx.DB)
+	examRepo 			:= repositoryExam.NewSqlExamRepository(ctx.DB)
+	userAttemptRepo 	:= repositoryUserAttempt.NewSqlUserAttemptRepository(ctx.DB)
+	examService 		:= v1service.NewExamService(examRepo, ctx.DB, partDirectionRepo, questionRepository, userAttemptRepo)
+	examHandler 		:= v1handler.NewExamHandler(examService)
+	examRoutes 			:= v1routes.NewExamRoutes(examHandler)
 
 	return &ExamClientModule{
 		routes: examRoutes,

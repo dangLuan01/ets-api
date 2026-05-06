@@ -14,10 +14,10 @@ type MenuModule struct {
 
 func NewMenuModule(ctx *ModuleContext) *MenuModule {
 
-	menuRepo := repository.NewSqlMenuRepository(ctx.DB)
+	menuRepo 	:= repository.NewSqlMenuRepository(ctx.DB)
 	menuService := v1service.NewMenuService(menuRepo)
 	menuHandler := v1handler.NewMenuHandler(menuService)
-	menuRoutes := v1routes.NewMenuRoutes(menuHandler)
+	menuRoutes 	:= v1routes.NewMenuRoutes(menuHandler)
 
 	return &MenuModule{
 		routes: menuRoutes,

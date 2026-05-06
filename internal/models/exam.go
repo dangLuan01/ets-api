@@ -113,18 +113,31 @@ type Question struct {
 type UserAnswer struct {
 	AttemptId 		int 					`db:"attempt_id"`
 	QuestionId 		int 					`db:"question_id"`
-	SelectedAnswer 	*string 					`db:"selected_answer"`
-	IsCorrect 		bool 					`db:"is_correct"`
+	SelectedAnswer 	string 					`db:"selected_answer"`
 }
 
 type UserAttempt struct {
 	UserId 			string					`db:"user_id"`
-	ExamId 			int						`db:"exam_id"`
+	ExamSlug 		string					`db:"exam_slug"`
 	StartTime 		string					`db:"start_time"`
-	EndTime			string					`db:"end_time"`
+	EndTime			*string					`db:"end_time"`
 	TotalScore 		int						`db:"total_score"`
 	ListeningScore 	int						`db:"listening_score"`
 	ReadingScore 	int						`db:"reading_score"`
+	Status 			int8					`db:"status"`
+}
+
+type ResumeAttempt struct {
+	Id				int						`db:"id"`
+	UserId 			string					`db:"user_id"`
+	ExamSlug 		string					`db:"exam_slug"`
+	Status 			int8					`db:"status"`
+	TimeSpentSec	int						`db:"time_spent_sec"`
+}
+
+type ResumeAnswer struct {
+	QuestionId		int						`db:"question_id"`
+	SelectedAnswer 	string					`db:"selected_answer"`
 }
 
 type ScoreConversion struct {
