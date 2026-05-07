@@ -16,12 +16,13 @@ func NewUserRoutes(handler *v1handler.UserHandler) *UserRoutes {
 }
 
 func (ur *UserRoutes) Register(r *gin.RouterGroup) {
-	users := r.Group("/user")
+	user := r.Group("/user")
 	{
-		users.GET("/info", ur.handler.GetUserByUUID)
+		user.GET("/info", ur.handler.GetUserByUUID)
 		// users.POST("", ur.handler.CreateUser)
 		// users.PUT("/:uuid", ur.handler.UpdateUser)
 		// users.DELETE("/:uuid", ur.handler.DeleteUser)
 		// users.PUT("/change-password", ur.handler.ChangePassword)
+		user.GET("/attempt", ur.handler.GetAttemptByUserUUID)
 	}
 }

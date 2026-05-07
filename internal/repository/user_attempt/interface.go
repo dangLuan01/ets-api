@@ -1,6 +1,7 @@
 package repository
 
 import (
+	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 )
 
@@ -11,4 +12,5 @@ type UserAttemptRepository interface {
 	UpsertUserAnswer(answer models.UserAnswer) error
 	FindExamResume(userId, examSlug string) (models.ResumeAttempt, bool, error)
 	FindAnswerResume(attemptId int) ([]models.ResumeAnswer, error)
+	FindAttemptByUserUUID(userUUID string, params v1dto.GetAttemptByUserUuuidParams) ([]v1dto.UserAttemptDTO, int64, error)
 }

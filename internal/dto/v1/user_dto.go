@@ -39,6 +39,12 @@ type UserPayload struct {
 	Role 		int8 		`json:"role"`
 }
 
+type GetAttemptByUserUuuidParams struct {
+	Page int32 `form:"page" binding:"omitempty,min=1"`
+	Limit int32 `form:"limit" binding:"omitempty,min=1,max=50"`
+	Status int	`form:"status" binding:"omitempty,oneof=1 2"`
+}
+
 func (input * CreateUserInput) MapCreateInputToModel() models.User {
 	return models.User{
 		UserName: input.Name,

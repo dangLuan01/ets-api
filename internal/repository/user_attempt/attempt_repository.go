@@ -1,6 +1,7 @@
 package repository
 
 import (
+	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/doug-martin/goqu/v9"
 )
@@ -8,6 +9,7 @@ import (
 const (
 	TABLE_USER_ATTEMPT	= "user_attempts"
 	TABLE_USER_ANSWERS	= "user_answers"
+	TABLE_EXAM 			= "exams"
 )
 
 type UpdateUserAttempt struct {
@@ -149,4 +151,52 @@ func (rt *SqlUserAttemptRepository) FindAnswerResume(attemptId int) ([]models.Re
 	}
 
 	return answers, nil
+}
+
+func (rt *SqlUserAttemptRepository) FindAttemptByUserUUID(userUUID string, params v1dto.GetAttemptByUserUuuidParams) ([]v1dto.UserAttemptDTO, int64, error) {
+	var attempts []v1dto.UserAttemptDTO
+	answerCount := rt.db.From(goqu.T(TABLE_USER_ANSWERS).As("ans")).
+		Select(goqu.COUNT("*")).
+		Where(
+			goqu.I("ans.attempt_id").Eq(goqu.I("ua.id")),
+		)
+
+	ds := rt.db.From(goqu.T(TABLE_USER_ATTEMPT).As("ua")).
+		InnerJoin(
+			goqu.T(TABLE_EXAM).As("e"), goqu.On(
+				goqu.I("e.slug").Eq(goqu.I("ua.exam_slug")),
+			),
+		).
+		Select(
+			goqu.I("ua.exam_slug"),
+			goqu.I("e.total_question"),
+			goqu.I("ua.start_time"),
+			goqu.I("ua.end_time"),
+			goqu.I("ua.listening_score"),
+			goqu.I("ua.reading_score"),
+			goqu.I("ua.total_score"),
+			goqu.I("ua.time_spent_sec"),
+			goqu.I("ua.status"),
+			goqu.Case().When(
+				goqu.I("ua.status").Eq(1),
+				answerCount,
+			).Else(0).As("total_answer"),
+		).Where(
+			goqu.I("ua.user_id").Eq(userUUID),
+		)
+
+	if params.Status != 0 {
+		ds = ds.Where(goqu.I("ua.status").Eq(params.Status))
+	}
+
+	totalRecords, err := ds.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if err := ds.Offset((uint(params.Page) - 1) * uint(params.Limit)).Limit(uint(params.Limit)).ScanStructs(&attempts); err != nil {
+		return nil, 0, err
+	}
+
+	return attempts, totalRecords, nil
 }

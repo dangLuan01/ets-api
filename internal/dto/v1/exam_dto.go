@@ -222,6 +222,19 @@ type AttemptDTO struct {
 	Answers 				map[string]string 	`json:"answers"`
 }
 
+type UserAttemptDTO struct {
+	ExamSlug 				string				`json:"exam_slug" db:"exam_slug"`
+	TotalQuestion			int					`json:"total_question" db:"total_question"`
+	TotalAnswer				int					`json:"total_answer" db:"total_answer"`
+	StartTime 				string				`json:"start_time" db:"start_time"`
+	EndTime					*string				`json:"end_time" db:"end_time"`
+	TotalScore 				int					`json:"total_score" db:"total_score"`
+	ListeningScore 			int					`json:"listening_score" db:"listening_score"`
+	ReadingScore 			int					`json:"reading_score" db:"reading_score"`
+	TimeSpentSec 			int 				`json:"time_spent_sec" db:"time_spent_sec"`
+	Status 					int8				`json:"status" db:"status"`
+}
+
 func MapDetailExamScoreDTO(params DetailExamScore) *DetailExamScoreDTO {
 	rawScoreMap := make(map[string]int)
     scaledScoreMap := make(map[string]int)

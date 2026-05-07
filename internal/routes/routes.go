@@ -20,47 +20,113 @@ func RegisterRoute(r *gin.Engine, authService auth.TokenService, cacheService ca
 		middleware.CORSMiddleware(),
 	)
 	
-	v1api 		:= r.Group("/api/v1")
-	authRoute   := v1api.Group("")
-	protected 	:= v1api.Group("")
+	//v1api 			:= r.Group("/api/v1")
+	// authRoute   	:= v1api.Group("")
+	// protected 		:= v1api.Group("")
+	// protectedClient := v1api.Group("")
 
-	v1api.Use(
-		//middleware.ApiKeyMiddleware(),
-		middleware.OptinalAuthMiddleware(),
-		middleware.RateLimiterMiddleware(),
-	)
+	// v1api.Use(
+	// 	//middleware.ApiKeyMiddleware(),
+	// 	middleware.OptinalAuthMiddleware(),
+	// 	middleware.RateLimiterMiddleware(),
+	// )
 
-	authRoute.Use(
-		middleware.RateLimiterMiddleware(),
-	)
+	// authRoute.Use(
+	// 	middleware.RateLimiterMiddleware(),
+	// )
 	
+	// middleware.InitAuthMiddlware(authService, cacheService)
+	// protected.Use(
+		
+	// 	middleware.AuthMiddleware(),
+	// 	middleware.RoleRequired(2),
+	// 	//middleware.ApiKeyMiddleware(),
+	// 	middleware.RateLimiterMiddleware(),
+	// )
+
+	// for _, route := range routes {
+
+	// 	switch route.(type) {
+	// 	case *v1routes.AuthRoutes:
+	// 		route.Register(authRoute)
+	// 	case *v1routesClient.MenuRoutes:
+	// 		route.Register(v1api)
+	// 	case *v1routesClient.ExamRoutes:
+	// 		route.Register(v1api)
+	// 	case *v1routesClient.PostRoutes:
+	// 		route.Register(v1api)
+	// 	case *v1routesClient.TagRoutes:
+	// 		route.Register(v1api)
+	// 	case *v1routesClient.UserRoutes:
+	// 		route.Register(v1api)
+	// 	default:
+	// 		route.Register(protected)
+	// 	}
+	// }
+	v1api := r.Group("/api/v1")
+
+	// Global middleware cho toàn bộ API
+	v1api.Use(
+		middleware.RateLimiterMiddleware(),
+	)
+
+	// Init auth dependency
 	middleware.InitAuthMiddlware(authService, cacheService)
 	
-	protected.Use(
-		
-		middleware.AuthMiddleware(),
-		middleware.RoleRequired(1),
-		//middleware.ApiKeyMiddleware(),
+	// =====================
+	// Public routes
+	// =====================
+	public := v1api.Group("")
+	public.Use(
+		middleware.OptionalAuthMiddleware(),
+	)
+
+	// =====================
+	// Auth routes
+	// =====================
+	auth := v1api.Group("")
+	auth.Use(
 		middleware.RateLimiterMiddleware(),
 	)
 
-	for _, route := range routes {
+	// =====================
+	// Protected user routes
+	// =====================
+	client := v1api.Group("")
+	client.Use(
+		middleware.AuthMiddleware(),
+		middleware.RoleRequired(2),
+	)
 
+	// =====================
+	// Protected admin routes
+	// =====================
+	admin := v1api.Group("")
+	admin.Use(
+		middleware.AuthMiddleware(),
+		middleware.RoleRequired(1),
+	)
+
+	// =====================
+	// Register routes
+	// =====================
+	for _, route := range routes {
 		switch route.(type) {
 		case *v1routes.AuthRoutes:
-			route.Register(authRoute)
+			route.Register(auth)
 		case *v1routesClient.MenuRoutes:
-			route.Register(v1api)
+			route.Register(public)
 		case *v1routesClient.ExamRoutes:
-			route.Register(v1api)
+			route.Register(public)
 		case *v1routesClient.PostRoutes:
-			route.Register(v1api)
+			route.Register(public)
 		case *v1routesClient.TagRoutes:
-			route.Register(v1api)
+			route.Register(public)
 		case *v1routesClient.UserRoutes:
-			route.Register(v1api)
+			route.Register(client)
+		// Default = admin protected
 		default:
-			route.Register(protected)
+			route.Register(admin)
 		}
 	}
 
