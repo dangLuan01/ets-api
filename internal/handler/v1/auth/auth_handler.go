@@ -28,7 +28,7 @@ func (ah *AuthHandler) Login(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, expiresIn, err := ah.authService.Login(ctx, input.Email, input.Password)
+	accessToken, refreshToken, expiresIn, err := ah.authService.Login(ctx, input)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return

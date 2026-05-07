@@ -6,8 +6,9 @@ import (
 )
 
 type LoginInput struct {
-	Email    		string `json:"email" binding:"required,email"`
-	Password 		string `json:"password" binding:"required,min=8"`
+	Email    		string 	`json:"email" binding:"required,email"`
+	Password 		string 	`json:"password" binding:"required,min=8"`
+	Token			string	`json:"token" binding:"required"`
 }
 
 type LoginResponse struct {
@@ -25,6 +26,7 @@ type RegisterInput struct {
 	Email 	 		string 	`json:"email" binding:"required,email,max=50"`
 	Password 		string 	`json:"password" binding:"required,min=8"`
 	Target 			int 	`json:"target" binding:"required,min=10,max=990"`
+	Token			string	`json:"token" binding:"required"`
 }
 
 type RequestOTPInput struct {

@@ -14,4 +14,5 @@ type TokenService interface {
 	StoreRefreshToken(token RefreshToken) error
 	ValidaRefreshToken(token string) (RefreshToken, error)
 	RevokeRefreshToken(token string) error
+	ValidTurnstile(token, remoteip string) (*TurnstileResponse, error)
 }

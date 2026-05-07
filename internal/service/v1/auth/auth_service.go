@@ -19,7 +19,7 @@ import (
 var (
 	mu sync.Mutex
 	clients 			= make(map[string]*LoginAttempt)
-	LoginAttemptTTL 	= 24 * time.Hour
+	LoginAttemptTTL 	= 3 * time.Minute
 	MaxLoginAttempt 	= 5
 	MaxCodeAttempt 		= 3 * 24 * time.Hour
 )
@@ -90,15 +90,24 @@ func (as *authService) CleanupClients(ip string) {
 	delete(clients, ip)
 }
 
-func (as *authService) Login(ctx *gin.Context, email, password string) (string, string, int, error) {
+func (as *authService) Login(ctx *gin.Context, params v1dto.LoginInput) (string, string, int, error) {
 	ip := as.getClientIP(ctx)
 
 	if err := as.CheckLoginAttempt(ip); err != nil {
 		return "", "", 0, err
 	}
 
-	email = utils.NormailizeString(email)
-	user, existed, err := as.userRepo.FindExistByEmail(email)
+	resultTurnstile, err := as.tokenService.ValidTurnstile(params.Token, ip)
+	if err != nil {
+		return "", "", 0, utils.NewError(string(utils.ErrCodeInternal), "Turnstile verification failed")
+	}
+
+	if !resultTurnstile.Success {
+		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid captcha")
+	}
+
+	params.Email = utils.NormailizeString(params.Email)
+	user, existed, err := as.userRepo.FindExistByEmail(params.Email)
 
 	if err != nil {
 		as.getLoginAttempt(ip)
@@ -115,7 +124,7 @@ func (as *authService) Login(ctx *gin.Context, email, password string) (string, 
 		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Account has banned.")
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(params.Password)); err != nil {
 		as.getLoginAttempt(ip)
 		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid email or password")
 	}
@@ -125,14 +134,13 @@ func (as *authService) Login(ctx *gin.Context, email, password string) (string, 
 		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create access token", err)
 	}
 
-
 	refreshToken, err := as.tokenService.GenerateRefreshToken(user)
 	if err != nil {
 		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create refresh token", err)
 	}
 
 	if err := as.tokenService.StoreRefreshToken(refreshToken); err != nil {
-		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Cannot save refresh token", err)
+		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Lỗi hệ thống vui lòng đăng nhập lại.", err)
 	}
 
 	as.CleanupClients(ip) 
@@ -209,6 +217,15 @@ func (as *authService) RefreshToken(ctx *gin.Context, refreshTokenString string)
 }
 
 func (as *authService) Register(ctx *gin.Context, userInput v1dto.RegisterInput) error {
+	resultTurnstile, err := as.tokenService.ValidTurnstile(userInput.Token, "")
+	if err != nil {
+		return utils.NewError(string(utils.ErrCodeInternal), "Turnstile verification failed")
+	}
+
+	if !resultTurnstile.Success {
+		return utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid captcha")
+	}
+
 	email := utils.NormailizeString(userInput.Email)
 	_, exists, err := as.userRepo.FindExistByEmail(email)
 	if err != nil {
