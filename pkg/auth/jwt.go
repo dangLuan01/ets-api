@@ -4,6 +4,9 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
@@ -23,10 +26,15 @@ type Claim struct {
 }
 
 type RefreshToken struct {
-	Token 		string `json:"token"`
-	UserUUID 	uuid.UUID `json:"user_uuid"`
-	ExpiresAt 	time.Time `json:"expires_at"`
-	Revoked 	bool `json:"revoked"`
+	Token 		string 		`json:"token"`
+	UserUUID 	uuid.UUID 	`json:"user_uuid"`
+	ExpiresAt 	time.Time 	`json:"expires_at"`
+	Revoked 	bool 		`json:"revoked"`
+}
+
+type TurnstileResponse struct {
+	Success		bool		`json:"success"`
+	ErrorCodes 	[]string 	`json:"error-codes"`
 }
 
 var (
@@ -161,4 +169,42 @@ func (js *JWTService) RevokeRefreshToken(token string) error {
 	refreshToken.Revoked = true
 
 	return js.cache.Set(cacheKey, refreshToken, time.Until(refreshToken.ExpiresAt))
+}
+
+func (js *JWTService) ValidTurnstile(token, remoteip string) (*TurnstileResponse, error) {
+	
+	form := url.Values{}
+	form.Set("secret", utils.GetEnv("TURNSTILE_SECRET_KEY", ""))
+	form.Set("response", token)
+	if remoteip != "" {
+		form.Set("remoteip", remoteip)
+	}
+	url	:= utils.GetEnv("URL_CLOUDFLARE_TURNSTILE", "")
+
+	req, err := http.NewRequest(
+		"POST",
+		url,
+		strings.NewReader(form.Encode()),
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	var result TurnstileResponse
+
+	if err = json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
