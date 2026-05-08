@@ -6,6 +6,7 @@ import (
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 	repository "github.com/dangLuan01/ets-api/internal/repository/user"
+	repositoryAttempt "github.com/dangLuan01/ets-api/internal/repository/user_attempt"
 	"github.com/dangLuan01/ets-api/internal/utils"
 	"github.com/gin-gonic/gin"
 
@@ -15,11 +16,13 @@ import (
 
 type userService struct {
 	repo repository.UserRepository
+	repoAttempt repositoryAttempt.UserAttemptRepository
 }
 
-func NewUserService(repo repository.UserRepository) UserService {
+func NewUserService(repo repository.UserRepository, repoAttempt repositoryAttempt.UserAttemptRepository) UserService {
 	return &userService{
 		repo: repo,
+		repoAttempt: repoAttempt,
 	}
 }
 
@@ -147,4 +150,9 @@ func (us *userService) ChangePassword(ctx *gin.Context, params v1dto.ChangerPass
 	}
 
 	return nil
+}
+
+func (us *userService) GetAttemptByUserUUID(ctx *gin.Context, params v1dto.GetAttemptByUserUuuidParams) ([]v1dto.UserAttemptDTO, int64, error) {
+	user, _ := utils.GetUserLogged(ctx)
+	return us.repoAttempt.FindAttemptByUserUUID(user.UserUUID.String(), params)
 }

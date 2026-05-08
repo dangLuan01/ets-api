@@ -473,6 +473,7 @@ func (es *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
 	updateData := goqu.Record{
         "title":          params.Title,
 		"slug":           params.Slug,
+		"exam_type":      params.ExamType,
         "year":           params.Year,
         "cert_id":        params.CertificateId,
         "total_question": params.TotalQuestion,

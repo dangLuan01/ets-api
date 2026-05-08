@@ -50,6 +50,7 @@ type DetailExamScoreDTO struct {
 type CreateExamInputParams struct {
 	CertificateId	int						`json:"cert_id" db:"cert_id" binding:"required"`
 	Title 			string 					`json:"title" db:"title" binding:"required"`
+	ExamType 		string 					`json:"exam_type" db:"exam_type" binding:"required,oneof=FULL MINI PRACTICE"`
 	Slug 			string 					`json:"slug" db:"slug" binding:"required"`
 	Year 			int 					`json:"year" db:"year" binding:"required"`
 	TotalQuestion 	int 					`json:"total_question" db:"total_question" binding:"required"`
@@ -64,6 +65,7 @@ type UpdateExamInputParams struct {
 	Id				int						`json:"id" db:"id" binding:"required"`
 	CertificateId	int						`json:"cert_id" db:"cert_id" binding:"required"`
 	Title 			string 					`json:"title" db:"title" binding:"required"`
+	ExamType 		string 					`json:"exam_type" db:"exam_type" binding:"required,oneof=FULL MINI PRACTICE"`
 	Slug 			string 					`json:"slug" db:"slug" binding:"required"`
 	Year 			int 					`json:"year" db:"year" binding:"required"`
 	TotalQuestion 	int 					`json:"total_question" db:"total_question" binding:"required"`
@@ -165,6 +167,7 @@ type UpdateQuestionGroupInputParams struct {
 type ExamFilterDTO struct {
 	Id 				int 					`json:"id" db:"id"`
 	Title 			string 					`json:"title" db:"title"`
+	ExamType 		string 					`json:"exam_type" db:"exam_type"`
 	Slug 			string 					`json:"slug" db:"slug"`
 	CertSlug		string					`json:"cert_slug" db:"cert_slug"`
 	Year 			int 					`json:"year" db:"year"`
@@ -220,6 +223,19 @@ type AttemptDTO struct {
 	TimeSpentSec 			int 				`json:"time_spent_sec" db:"time_spent_sec"`
 	LastViewedQuestionId 	int 				`json:"last_viewed_question_id" db:"-"`
 	Answers 				map[string]string 	`json:"answers"`
+}
+
+type UserAttemptDTO struct {
+	ExamSlug 				string				`json:"exam_slug" db:"exam_slug"`
+	TotalQuestion			int					`json:"total_question" db:"total_question"`
+	TotalAnswer				int					`json:"total_answer" db:"total_answer"`
+	StartTime 				string				`json:"start_time" db:"start_time"`
+	EndTime					*string				`json:"end_time" db:"end_time"`
+	TotalScore 				int					`json:"total_score" db:"total_score"`
+	ListeningScore 			int					`json:"listening_score" db:"listening_score"`
+	ReadingScore 			int					`json:"reading_score" db:"reading_score"`
+	TimeSpentSec 			int 				`json:"time_spent_sec" db:"time_spent_sec"`
+	Status 					int8				`json:"status" db:"status"`
 }
 
 func MapDetailExamScoreDTO(params DetailExamScore) *DetailExamScoreDTO {

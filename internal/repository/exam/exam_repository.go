@@ -662,6 +662,7 @@ func (er *SqlExamRepository) FindExamsByFilter(params v1dto.FilterExamParams) ([
 		Select(
 			goqu.I("e.id"),
 			goqu.I("e.title"),
+			goqu.I("e.exam_type"),
 			goqu.I("e.slug"),
 			goqu.I("cf.slug").As("cert_slug"),
 			goqu.I("e.year"),

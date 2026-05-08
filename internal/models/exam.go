@@ -4,6 +4,7 @@ type ExamModel struct {
 	Id 				int 					`json:"id" db:"id"`
 	CertificateId	int						`json:"cert_id" db:"cert_id"`
 	Title 			string 					`json:"title" db:"title"`
+	ExamType 		string 					`json:"exam_type" db:"exam_type"`
 	Slug 			string 					`json:"slug" db:"slug"`
 	Year 			int 					`json:"year" db:"year"`
 	CategoryIds 	[]int 					`json:"category_ids" db:"-"`
@@ -21,6 +22,7 @@ type Exam struct {
 	CertificateId	int						`json:"-" db:"cert_id"`
 	CertCode		string					`json:"cert_code" db:"cert_code"`
 	Title 			string 					`json:"title" db:"title"`
+	ExamType 		string 					`json:"exam_type" db:"exam_type"`
 	Slug 			string 					`json:"slug" db:"slug"`
 	Year 			int 					`json:"year" db:"year"`
 	TotalTime 		int 					`json:"total_time" db:"total_time"`

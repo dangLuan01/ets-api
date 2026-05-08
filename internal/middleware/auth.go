@@ -67,7 +67,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-func OptinalAuthMiddleware() gin.HandlerFunc {
+func OptionalAuthMiddleware() gin.HandlerFunc {
 	return func (ctx *gin.Context)  {
 		authHeder := ctx.GetHeader("Authorization")
 		if authHeder == "" || !strings.HasPrefix(authHeder, "Bearer ") {
