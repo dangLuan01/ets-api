@@ -50,6 +50,7 @@ type DetailExamScoreDTO struct {
 type CreateExamInputParams struct {
 	CertificateId	int						`json:"cert_id" db:"cert_id" binding:"required"`
 	Title 			string 					`json:"title" db:"title" binding:"required"`
+	ExamType 		string 					`json:"exam_type" db:"exam_type" binding:"required,oneof=FULL MINI PRACTICE"`
 	Slug 			string 					`json:"slug" db:"slug" binding:"required"`
 	Year 			int 					`json:"year" db:"year" binding:"required"`
 	TotalQuestion 	int 					`json:"total_question" db:"total_question" binding:"required"`
@@ -64,6 +65,7 @@ type UpdateExamInputParams struct {
 	Id				int						`json:"id" db:"id" binding:"required"`
 	CertificateId	int						`json:"cert_id" db:"cert_id" binding:"required"`
 	Title 			string 					`json:"title" db:"title" binding:"required"`
+	ExamType 		string 					`json:"exam_type" db:"exam_type" binding:"required,oneof=FULL MINI PRACTICE"`
 	Slug 			string 					`json:"slug" db:"slug" binding:"required"`
 	Year 			int 					`json:"year" db:"year" binding:"required"`
 	TotalQuestion 	int 					`json:"total_question" db:"total_question" binding:"required"`
@@ -165,6 +167,7 @@ type UpdateQuestionGroupInputParams struct {
 type ExamFilterDTO struct {
 	Id 				int 					`json:"id" db:"id"`
 	Title 			string 					`json:"title" db:"title"`
+	ExamType 		string 					`json:"exam_type" db:"exam_type"`
 	Slug 			string 					`json:"slug" db:"slug"`
 	CertSlug		string					`json:"cert_slug" db:"cert_slug"`
 	Year 			int 					`json:"year" db:"year"`
