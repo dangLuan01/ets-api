@@ -23,6 +23,7 @@ func (tr *ExamRoutes) Register(r *gin.RouterGroup) {
 		exam.POST("/user-answer/store", tr.handler.UpsertUserAnswer)
 		exam.POST("/resume/:slug", tr.handler.GetResumeExam)
 		exam.POST("/calculate/score", tr.handler.CalculateScoreExam)
+		exam.POST("/calculate/score/practice", tr.handler.CalculateScorePractice)
 		exam.GET("/filter-structure", tr.handler.GetFilterStructure)
 		exam.GET("/filter", tr.handler.FilterExam)
 		exam.GET("featured", tr.handler.GetFeatured)

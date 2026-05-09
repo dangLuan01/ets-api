@@ -69,7 +69,6 @@ func (es *examService) FindExamBySlug(examSlug string) (models.Exam, error) {
 		}
 	}
 
-	
 	questionMap 	:= make(map[int]models.Question)
 	groupMap 		:= make(map[int]*models.QuestionGroup)
 
@@ -198,6 +197,7 @@ func (es *examService) FindExamBySlug(examSlug string) (models.Exam, error) {
 	for partID := range sectionsByPart {
 		partIDSet[partID] = true
 	}
+	
 	for partID := range directionMap {
 		partIDSet[partID] = true
 	}
@@ -355,6 +355,79 @@ func (es *examService) CalculateScoreExam(ctx *gin.Context, params v1dto.Questio
 			TotalScore: totalScore,
 			ListeningScore: finalSkillScores[1],
 			ReadingScore: finalSkillScores[2],
+			Status: 2,
+		})
+		if err != nil {
+			return v1dto.DetailExamScore{}, err
+		} 
+	}
+
+	return v1dto.DetailExamScore{
+		TotalScore: totalScore,
+		RawScore: rawScores,
+		ScaledScore: finalSkillScores,
+	}, nil
+}
+
+func (es *examService) CalculateScorePractice(ctx *gin.Context, params v1dto.QuestionAnswerInputParams) (v1dto.DetailExamScore, error) {
+
+	questionIds 	:= make([]int, 0, len(params.Answers))
+	userAnswerMap 	:= make(map[int]string)
+
+	for _, ans := range params.Answers {
+		questionIds = append(questionIds, ans.QuestionId)
+		userAnswerMap[ans.QuestionId] = ans.SelectedAnswer
+	}
+
+	exam, _ := es.repo.FindExamBySlug(params.ExamSlug)
+
+	correctAnswer, err := es.repo.GetCorrectAnswersWithSkillContext(exam.Id, questionIds)
+	if err != nil {
+		return v1dto.DetailExamScore{}, err
+	}
+	
+	rawScores := make(map[int]int)
+	//var detailsAnswers []models.UserAnswer
+	
+	for _, ca := range correctAnswer {
+		//isCorrect := false
+		if _, ok := rawScores[ca.SkillId]; !ok {
+        	rawScores[ca.SkillId] = 0
+    	}
+
+		if userAnswerMap[ca.QuestionId] == ca.CorrectAnswer {
+			//isCorrect = true
+			rawScores[ca.SkillId]++
+		}
+
+		// var selectedAnswer *string
+		// if ans, ok := userAnswerMap[ca.QuestionId]; ok && ans != "" {
+		// 	selectedAnswer = &ans
+		// } else {
+		// 	selectedAnswer = nil
+		// }
+
+		// detailsAnswers = append(detailsAnswers, models.UserAnswer{
+		// 	QuestionId: ca.QuestionId,
+		// 	SelectedAnswer: selectedAnswer,
+		// 	IsCorrect: isCorrect,
+		// })
+	}
+
+	finalSkillScores := make(map[int]int)
+	totalScore := 0
+
+	for _, correctCount := range rawScores {
+		totalScore += correctCount
+	}
+
+	if _, exists := utils.GetUserLogged(ctx); exists {
+		endTime := time.Now().Format(time.DateTime)
+		err := es.repoAttempt.UpdateUserAttempt(params.AttemptId, models.UserAttempt{
+			EndTime: &endTime,
+			TotalScore: totalScore,
+			ListeningScore: 0,
+			ReadingScore: 0,
 			Status: 2,
 		})
 		if err != nil {
@@ -988,7 +1061,7 @@ func (es *examService) GetFeaturedExams(params v1dto.ExamFeaturedParams) (v1dto.
 		}
 
 		resultMap[r.Type].Exams = append(resultMap[r.Type].Exams, v1dto.ExamFeaturedDTO{
-			Id: r.Id,
+			Slug: r.Slug,
 			Title: r.Title,
 			Year: r.Year,
 			TotalTime: r.TotalTime,

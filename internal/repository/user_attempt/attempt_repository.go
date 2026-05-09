@@ -168,8 +168,10 @@ func (rt *SqlUserAttemptRepository) FindAttemptByUserUUID(userUUID string, param
 			),
 		).
 		Select(
+			goqu.I("e.title"),
 			goqu.I("ua.exam_slug"),
 			goqu.I("e.total_question"),
+			goqu.I("e.exam_type"),
 			goqu.I("ua.start_time"),
 			goqu.I("ua.end_time"),
 			goqu.I("ua.listening_score"),
