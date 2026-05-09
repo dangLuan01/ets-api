@@ -187,8 +187,8 @@ type ExamFeaturedRaw struct {
 	Name			string					`json:"name" db:"name"`
 	Type 			string					`json:"type" db:"type"`
 	CateDescription *string					`json:"description" db:"description"`
-	Id 				int 					`json:"id" db:"id"`
 	Title 			string 					`json:"title" db:"title"`
+	Slug 			string 					`json:"slug" db:"slug"`
 	Year 			int 					`json:"year" db:"year"`
 	TotalTime 		int 					`json:"total_time" db:"total_time"`
 	TotalQuestion	int						`json:"total_question" db:"total_question"`
@@ -203,8 +203,8 @@ type FeaturedDTO struct {
 }
 
 type ExamFeaturedDTO struct {
-	Id 				int 					`json:"id" db:"id"`
 	Title 			string 					`json:"title" db:"title"`
+	Slug 			string 					`json:"slug" db:"slug"`
 	Year 			int 					`json:"year" db:"year"`
 	TotalTime 		int 					`json:"total_time" db:"total_time"`
 	TotalQuestion	int						`json:"total_question" db:"total_question"`
@@ -226,7 +226,9 @@ type AttemptDTO struct {
 }
 
 type UserAttemptDTO struct {
+	Title 					string				`json:"title" db:"title"`
 	ExamSlug 				string				`json:"exam_slug" db:"exam_slug"`
+	ExamType 				string				`json:"exam_type" db:"exam_type"`
 	TotalQuestion			int					`json:"total_question" db:"total_question"`
 	TotalAnswer				int					`json:"total_answer" db:"total_answer"`
 	StartTime 				string				`json:"start_time" db:"start_time"`

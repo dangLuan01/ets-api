@@ -98,6 +98,23 @@ func (eh *ExamHandler) CalculateScoreExam(ctx *gin.Context) {
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", v1dto.MapDetailExamScoreDTO(data))
 }
 
+func (eh *ExamHandler) CalculateScorePractice(ctx *gin.Context) {
+	var params v1dto.QuestionAnswerInputParams
+	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	data, err := eh.service.CalculateScorePractice(ctx, params)
+
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", v1dto.MapDetailExamScoreDTO(data))
+}
+
 func (eh *ExamHandler) GetResumeExam(ctx *gin.Context) {
 	var params GetSlugExamParams
 	if err := ctx.ShouldBindUri(&params); err != nil {
