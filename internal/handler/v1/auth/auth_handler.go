@@ -18,6 +18,7 @@ type Oauth2LoginParams struct {
 type Oauth2CallBackParams struct {
 	Error 	string	`form:"error" binding:"omitempty"`
 	Code 	string 	`form:"code" binding:"omitempty"`
+	State 	string 	`form:"state" binding:"omitempty"`
 }
 
 type AuthHandler struct {
@@ -130,8 +131,8 @@ func (ah *AuthHandler) Oauth2CallBack(ctx *gin.Context) {
 	
 	if err := ctx.ShouldBindUri(&paramProvider); err != nil {
 		frontendURL := fmt.Sprintf(
-			"%s/oauth/error?message=%s",
-			"http://localhost:3000",
+			"%s/oauth/error?message=%v",
+			utils.GetEnv("DOMAIN_FRONTEND", ""),
 			err,
 		)
 		http.Redirect(ctx.Writer, ctx.Request, frontendURL, http.StatusTemporaryRedirect)
@@ -140,19 +141,19 @@ func (ah *AuthHandler) Oauth2CallBack(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindQuery(&paramCallBack); err != nil {
 		frontendURL := fmt.Sprintf(
-			"%s/oauth/error?message=%s",
-			"http://localhost:3000",
+			"%s/oauth/error?message=%v",
+			utils.GetEnv("DOMAIN_FRONTEND", ""),
 			err,
 		)
 		http.Redirect(ctx.Writer, ctx.Request, frontendURL, http.StatusTemporaryRedirect)
 		return
 	}
 
-	accessToken, refreshToken, expiresIn, err := ah.authService.Oauth2CallBack(paramProvider.Provider, paramCallBack.Code, paramCallBack.Error);
+	accessToken, refreshToken, expiresIn, err := ah.authService.Oauth2CallBack(paramProvider.Provider, paramCallBack.Code, paramCallBack.State, paramCallBack.Error);
 	if err != nil {
 		frontendURL := fmt.Sprintf(
-			"%s/oauth/error?message=%s",
-			"http://localhost:3000",
+			"%s/oauth/error?message=%v",
+			utils.GetEnv("DOMAIN_FRONTEND", ""),
 			err,
 		)
 		http.Redirect(ctx.Writer, ctx.Request, frontendURL, http.StatusTemporaryRedirect)
@@ -161,7 +162,7 @@ func (ah *AuthHandler) Oauth2CallBack(ctx *gin.Context) {
 
 	frontendURL := fmt.Sprintf(
 		"%s/oauth/success?access_token=%s&refresh_token=%s&expires_in=%d",
-		"http://localhost:3000",
+		utils.GetEnv("DOMAIN_FRONTEND", ""),
 		accessToken,
 		refreshToken,
 		expiresIn,

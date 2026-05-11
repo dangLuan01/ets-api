@@ -101,11 +101,11 @@ func (as *authService) Login(ctx *gin.Context, params v1dto.LoginInput) (string,
 
 	resultTurnstile, err := as.tokenService.ValidTurnstile(params.Token, ip)
 	if err != nil {
-		return "", "", 0, utils.NewError(string(utils.ErrCodeInternal), "Turnstile verification failed")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeInternal), "Lỗi hệ thống vui lòng thử lại!")
 	}
 
 	if !resultTurnstile.Success {
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid captcha")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Captcha không hợp lệ!")
 	}
 
 	params.Email = utils.NormailizeString(params.Email)
@@ -113,22 +113,22 @@ func (as *authService) Login(ctx *gin.Context, params v1dto.LoginInput) (string,
 
 	if err != nil {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid email or password")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Sai email hoặc mật khẩu!")
 	}
 
 	if !existed {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid email or password.")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Sai email hoặc mật khẩu!.")
 	}
 
 	if user.Status != 1 {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Account has banned.")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Tài khoản của bạn đã bị cấm!.")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(params.Password)); err != nil {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid email or password")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Sai email hoặc mật khẩu!")
 	}
 
 	accessToken, err := as.tokenService.GenerateAccessToken(user)
@@ -138,7 +138,7 @@ func (as *authService) Login(ctx *gin.Context, params v1dto.LoginInput) (string,
 
 	refreshToken, err := as.tokenService.GenerateRefreshToken(user)
 	if err != nil {
-		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create refresh token", err)
+		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Lỗi hệ thống vui lòng đăng nhập lại.", err)
 	}
 
 	if err := as.tokenService.StoreRefreshToken(refreshToken); err != nil {
@@ -225,7 +225,7 @@ func (as *authService) Register(ctx *gin.Context, userInput v1dto.RegisterInput)
 	}
 
 	if !resultTurnstile.Success {
-		return utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid captcha")
+		return utils.NewError(string(utils.ErrCodeUnauthorized), "Captcha không hợp lệ!")
 	}
 
 	email := utils.NormailizeString(userInput.Email)
@@ -235,7 +235,7 @@ func (as *authService) Register(ctx *gin.Context, userInput v1dto.RegisterInput)
 	}
 
 	if exists {
-		return utils.NewError(string(utils.ErrCodeConflict), "User existing.")
+		return utils.NewError(string(utils.ErrCodeConflict), "Tài khoản đã tồn tại!")
 	}
 	
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(userInput.Password), bcrypt.DefaultCost)
@@ -259,10 +259,15 @@ func (as *authService) Oauth2Login(provider string) (string, error) {
 	var url string
 	switch provider {
 	case "google":
-		urlLogin, err := as.oauth2Service.GoogleLogin()
+		urlLogin, state, err := as.oauth2Service.GoogleLogin()
 		if err != nil {
 			return "", err
 		}
+		key := "state:" + state
+		if err := as.cache.Set(key, state, 5 * time.Minute); err != nil {
+			return "", err
+		}
+
 		url = urlLogin
 	default:
 		
@@ -271,9 +276,15 @@ func (as *authService) Oauth2Login(provider string) (string, error) {
 	return url, nil
 }
 
-func (as *authService) Oauth2CallBack(provider, code, err string) (string, string, int, error) {
+func (as *authService) Oauth2CallBack(provider, code, state, err string) (string, string, int, error) {
+	var StateCode string
 	if err != "" {
 		return "", "", 0, utils.NewError(string(utils.ErrCodeBadRequest), err)
+	}
+
+	key := "state:" + state
+	if err := as.cache.Get(key, StateCode); err != nil {
+		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Mã xác nhận không hợp lệ!")
 	}
 
 	switch provider {
@@ -312,6 +323,7 @@ func (as *authService) Oauth2CallBack(provider, code, err string) (string, strin
 			return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Lỗi hệ thống vui lòng đăng nhập lại.", err)
 		}
 
+		as.cache.Clear(key)
 		return accessToken, refreshToken.Token, int(auth.AccessTokenTTL.Seconds()), nil
 
 	default:

@@ -20,15 +20,15 @@ func NewOauth2Service(conf config.Config) Oauth2Service {
 	}
 }
 
-func (os *oauth2Service) GoogleLogin() (string, error) {
+func (os *oauth2Service) GoogleLogin() (string, string, error) {
 	state, err := utils.GenerateRandomString(6)
 	if err != nil {
-		return "", utils.NewError(string(utils.ErrCodeInternal), " Vui lòng thử lại sau.")
+		return "", "", utils.NewError(string(utils.ErrCodeInternal), " Vui lòng thử lại sau.")
 	}
 	
 	url := os.conf.Oauth2.AuthCodeURL(state, oauth2.AccessTypeOnline)
 
-	return url, nil
+	return url, state, nil
 }
 
 func (os *oauth2Service) GoogleCallback(code string) (models.GoogleUser, error) {
