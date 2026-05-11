@@ -32,13 +32,15 @@ type LoginAttempt struct {
 type authService struct {
 	userRepo repository.UserRepository
 	tokenService auth.TokenService
+	oauth2Service auth.Oauth2Service
 	cache cache.RedisCacheService
 }
 
-func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, cache cache.RedisCacheService) *authService {
+func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, oauth2Service auth.Oauth2Service, cache cache.RedisCacheService) *authService {
 	return &authService{
 		userRepo: repo,
 		tokenService: tokenService,
+		oauth2Service: oauth2Service,
 		cache: cache,
 	}
 }
@@ -124,7 +126,7 @@ func (as *authService) Login(ctx *gin.Context, params v1dto.LoginInput) (string,
 		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Account has banned.")
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(params.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(params.Password)); err != nil {
 		as.getLoginAttempt(ip)
 		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid email or password")
 	}
@@ -251,4 +253,70 @@ func (as *authService) Register(ctx *gin.Context, userInput v1dto.RegisterInput)
 	}
 
 	return nil
+}
+
+func (as *authService) Oauth2Login(provider string) (string, error) {
+	var url string
+	switch provider {
+	case "google":
+		urlLogin, err := as.oauth2Service.GoogleLogin()
+		if err != nil {
+			return "", err
+		}
+		url = urlLogin
+	default:
+		
+	}
+	
+	return url, nil
+}
+
+func (as *authService) Oauth2CallBack(provider, code, err string) (string, string, int, error) {
+	if err != "" {
+		return "", "", 0, utils.NewError(string(utils.ErrCodeBadRequest), err)
+	}
+
+	switch provider {
+	case "google":
+		userOauth, err := as.oauth2Service.GoogleCallback(code)
+		if err != nil {
+			return "", "", 0, err
+		}
+
+		userOauth.Email = utils.NormailizeString(userOauth.Email)
+
+		user, existed, err := as.userRepo.FindExistByEmail(userOauth.Email)
+		if !existed {
+			provider := "google"
+			uuidUser := uuid.New()
+			userModel := v1dto.Oauth2DTOToModel(uuidUser, provider, userOauth)
+
+			if err := as.userRepo.Create(userModel); err != nil {
+				return "", "", 0, utils.WrapError(string(utils.ErrCodeInternal), "Failed to store user.", err)
+			}
+
+			user = userModel
+		}
+
+		accessToken, err := as.tokenService.GenerateAccessToken(user)
+		if err != nil {
+			return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create access token", err)
+		}
+
+		refreshToken, err := as.tokenService.GenerateRefreshToken(user)
+		if err != nil {
+			return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create refresh token", err)
+		}
+
+		if err := as.tokenService.StoreRefreshToken(refreshToken); err != nil {
+			return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Lỗi hệ thống vui lòng đăng nhập lại.", err)
+		}
+
+		return accessToken, refreshToken.Token, int(auth.AccessTokenTTL.Seconds()), nil
+
+	default:
+		
+	}
+	
+	return "", "", 0, nil
 }

@@ -1,6 +1,7 @@
 package v1handler
 
 import (
+	"fmt"
 	"net/http"
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
@@ -9,6 +10,15 @@ import (
 	"github.com/dangLuan01/ets-api/internal/validation"
 	"github.com/gin-gonic/gin"
 )
+
+type Oauth2LoginParams struct {
+	Provider string `uri:"provider" binding:"required,oneof=google apple"`
+}
+
+type Oauth2CallBackParams struct {
+	Error 	string	`form:"error" binding:"omitempty"`
+	Code 	string 	`form:"code" binding:"omitempty"`
+}
 
 type AuthHandler struct {
 	authService v1service.AuthService
@@ -94,4 +104,68 @@ func (ah *AuthHandler) Register(ctx *gin.Context) {
 	}
 
 	utils.ResponseStatus(ctx, http.StatusOK)
+}
+
+func (ah *AuthHandler) Oauth2Login(ctx *gin.Context) {
+	var params Oauth2LoginParams
+	if err := ctx.ShouldBindUri(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	url, err := ah.authService.Oauth2Login(params.Provider)
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	http.Redirect(ctx.Writer, ctx.Request, url, http.StatusTemporaryRedirect)
+}
+
+func (ah *AuthHandler) Oauth2CallBack(ctx *gin.Context) {
+	var (
+		paramProvider Oauth2LoginParams
+		paramCallBack Oauth2CallBackParams
+	)
+	
+	if err := ctx.ShouldBindUri(&paramProvider); err != nil {
+		frontendURL := fmt.Sprintf(
+			"%s/oauth/error?message=%s",
+			"http://localhost:3000",
+			err,
+		)
+		http.Redirect(ctx.Writer, ctx.Request, frontendURL, http.StatusTemporaryRedirect)
+		return
+	}
+
+	if err := ctx.ShouldBindQuery(&paramCallBack); err != nil {
+		frontendURL := fmt.Sprintf(
+			"%s/oauth/error?message=%s",
+			"http://localhost:3000",
+			err,
+		)
+		http.Redirect(ctx.Writer, ctx.Request, frontendURL, http.StatusTemporaryRedirect)
+		return
+	}
+
+	accessToken, refreshToken, expiresIn, err := ah.authService.Oauth2CallBack(paramProvider.Provider, paramCallBack.Code, paramCallBack.Error);
+	if err != nil {
+		frontendURL := fmt.Sprintf(
+			"%s/oauth/error?message=%s",
+			"http://localhost:3000",
+			err,
+		)
+		http.Redirect(ctx.Writer, ctx.Request, frontendURL, http.StatusTemporaryRedirect)
+		return
+	}
+
+	frontendURL := fmt.Sprintf(
+		"%s/oauth/success?access_token=%s&refresh_token=%s&expires_in=%d",
+		"http://localhost:3000",
+		accessToken,
+		refreshToken,
+		expiresIn,
+	)
+
+	http.Redirect(ctx.Writer, ctx.Request, frontendURL, http.StatusTemporaryRedirect)
 }

@@ -8,6 +8,7 @@ import (
 type UserDTO struct {
 	UserName   		string 		`json:"username"`
 	Email  			string 		`json:"email"`
+	Avatar			*string		`json:"avatar"`
 	Target			int			`json:"target"`
 }
 
@@ -49,7 +50,7 @@ func (input * CreateUserInput) MapCreateInputToModel() models.User {
 	return models.User{
 		UserName: input.Name,
 		Email: input.Email,
-		PasswordHash: input.Password,
+		PasswordHash: &input.Password,
 		Status: input.Status,
 		Role: input.Role,
 	}
@@ -59,7 +60,7 @@ func (input * UpdateUserInput) MapUpdateInputToModel() models.User {
 	return models.User{
 		UserName: input.Name,
 		Email: input.Email,
-		PasswordHash: input.Password,
+		PasswordHash: &input.Password,
 		Status: input.Status,
 		Role: input.Role,
 	}
@@ -69,7 +70,8 @@ func MapUserDTO(user models.User) *UserDTO {
 	return &UserDTO{
 		UserName: user.UserName,
 		Email: user.Email,
-		Target: user.Target,
+		Avatar: user.Avatar,
+		Target: user.Target,		
 	}
 }
 

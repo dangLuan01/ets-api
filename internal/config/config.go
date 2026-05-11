@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/dangLuan01/ets-api/internal/utils"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 type DatabaseConfig struct {
@@ -15,11 +17,20 @@ type DatabaseConfig struct {
 	SSLMode string
 }
 
+// type Oauth2GoogleConfig struct {
+// 	ClientID string
+// 	ClientSecret string
+// 	RedirectURL string
+// 	Scopes []string
+// 	Endpoint oauth2.Endpoint
+// }
+
 type Config struct {
 	ServerAddress string
 	DB DatabaseConfig
 	MailProviderType string
 	MailProviderConfig map[string]any
+	Oauth2 *oauth2.Config
 }
 
 func NewConfig() *Config {
@@ -47,6 +58,18 @@ func NewConfig() *Config {
 
 		mailProviderConfig["resent"] = resentConfig
 	}
+
+	oauth2Config := &oauth2.Config{
+		ClientID: utils.GetEnv("GOOGLE_CLIENT_ID",""),
+		ClientSecret: utils.GetEnv("GOOGLE_CLIENT_SECRET",""),
+		RedirectURL: utils.GetEnv("REDIRECT_URL", ""),
+		Scopes: []string{
+			"https://www.googleapis.com/auth/userinfo.profile",
+			"https://www.googleapis.com/auth/userinfo.email",
+			"openid",
+		},
+		Endpoint: google.Endpoint,
+	}
 	
 	return &Config{
 		ServerAddress: fmt.Sprintf(":%s", utils.GetEnv("PORT", "8080")),
@@ -60,6 +83,7 @@ func NewConfig() *Config {
 		},
 		MailProviderType: mailProviderType,
 		MailProviderConfig: mailProviderConfig,
+		Oauth2: oauth2Config,
 	}
 }
 
