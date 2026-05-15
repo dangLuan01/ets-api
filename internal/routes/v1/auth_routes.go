@@ -22,6 +22,8 @@ func (ar *AuthRoutes) Register(r *gin.RouterGroup) {
 		auth.POST("/logout", ar.handler.Logout)
 		auth.POST("/refresh", ar.handler.RefreshToken)
 		auth.POST("/register", ar.handler.Register)
+		auth.GET("/:provider", ar.handler.Oauth2Login)
+		auth.GET("/:provider/callback", ar.handler.Oauth2CallBack)
 		//auth.POST("/register-otp", ar.handler.RegisterOTP)
 	}
 }

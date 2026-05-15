@@ -16,3 +16,8 @@ type TokenService interface {
 	RevokeRefreshToken(token string) error
 	ValidTurnstile(token, remoteip string) (*TurnstileResponse, error)
 }
+
+type Oauth2Service interface {
+	GoogleLogin() (string, string, error)
+	GoogleCallback(code string) (models.GoogleUser, error) 
+}

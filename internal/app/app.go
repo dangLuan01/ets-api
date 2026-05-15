@@ -52,6 +52,7 @@ func NewApplication(cfg *config.Config) (*Application, error) {
 	cacheRedisService := cache.NewRedisCacheService(redisClient)
 
 	tokenService := auth.NewJWTService(cacheRedisService)
+	oauth2Service := auth.NewOauth2Service(*cfg)
 	
 	// s3Client := config.NewS3Client()
 	// storeS3Service := s3.NewS3Service(s3Client)
@@ -78,7 +79,7 @@ func NewApplication(cfg *config.Config) (*Application, error) {
 	}
 
 	modules := []Module{
-		NewAuthModule(ctx, tokenService, cacheRedisService),
+		NewAuthModule(ctx, tokenService, oauth2Service, cacheRedisService),
 		NewUserModule(ctx),
 		NewExamAdminModule(ctx),
 		NewExamClientModule(ctx),

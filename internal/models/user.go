@@ -8,8 +8,18 @@ type User struct {
 	UUID      		uuid.UUID 	`db:"uuid"`
 	UserName  		string 		`db:"username"`
 	Email     		string 		`db:"email"`
-	PasswordHash  	string 		`db:"password_hash"`
+	PasswordHash  	*string 	`db:"password_hash"`
+	Avatar			*string		`db:"avatar"`
+	Provider		*string		`db:"provider"`
+	OpenID			*string		`db:"openid"`
 	Target     		int 		`db:"target"`
 	Role     		int8   		`db:"role"`
 	Status    		int8   		`db:"status"`
+}
+
+type GoogleUser struct {
+	Sub 			string 		`json:"sub"`
+	Name 			string 		`json:"name"`
+	Picture			string 		`json:"picture"`
+	Email 			string 		`json:"email"`
 }

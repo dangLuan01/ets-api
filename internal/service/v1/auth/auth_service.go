@@ -32,13 +32,15 @@ type LoginAttempt struct {
 type authService struct {
 	userRepo repository.UserRepository
 	tokenService auth.TokenService
+	oauth2Service auth.Oauth2Service
 	cache cache.RedisCacheService
 }
 
-func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, cache cache.RedisCacheService) *authService {
+func NewAuthService(repo repository.UserRepository, tokenService auth.TokenService, oauth2Service auth.Oauth2Service, cache cache.RedisCacheService) *authService {
 	return &authService{
 		userRepo: repo,
 		tokenService: tokenService,
+		oauth2Service: oauth2Service,
 		cache: cache,
 	}
 }
@@ -99,11 +101,11 @@ func (as *authService) Login(ctx *gin.Context, params v1dto.LoginInput) (string,
 
 	resultTurnstile, err := as.tokenService.ValidTurnstile(params.Token, ip)
 	if err != nil {
-		return "", "", 0, utils.NewError(string(utils.ErrCodeInternal), "Turnstile verification failed")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeInternal), "Lỗi hệ thống vui lòng thử lại!")
 	}
 
 	if !resultTurnstile.Success {
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid captcha")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Captcha không hợp lệ!")
 	}
 
 	params.Email = utils.NormailizeString(params.Email)
@@ -111,22 +113,22 @@ func (as *authService) Login(ctx *gin.Context, params v1dto.LoginInput) (string,
 
 	if err != nil {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid email or password")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Sai email hoặc mật khẩu!")
 	}
 
 	if !existed {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid email or password.")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Sai email hoặc mật khẩu!.")
 	}
 
 	if user.Status != 1 {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Account has banned.")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Tài khoản của bạn đã bị cấm!.")
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(params.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(params.Password)); err != nil {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid email or password")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Sai email hoặc mật khẩu!")
 	}
 
 	accessToken, err := as.tokenService.GenerateAccessToken(user)
@@ -136,7 +138,7 @@ func (as *authService) Login(ctx *gin.Context, params v1dto.LoginInput) (string,
 
 	refreshToken, err := as.tokenService.GenerateRefreshToken(user)
 	if err != nil {
-		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create refresh token", err)
+		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Lỗi hệ thống vui lòng đăng nhập lại.", err)
 	}
 
 	if err := as.tokenService.StoreRefreshToken(refreshToken); err != nil {
@@ -223,7 +225,7 @@ func (as *authService) Register(ctx *gin.Context, userInput v1dto.RegisterInput)
 	}
 
 	if !resultTurnstile.Success {
-		return utils.NewError(string(utils.ErrCodeUnauthorized), "Invalid captcha")
+		return utils.NewError(string(utils.ErrCodeUnauthorized), "Captcha không hợp lệ!")
 	}
 
 	email := utils.NormailizeString(userInput.Email)
@@ -233,7 +235,7 @@ func (as *authService) Register(ctx *gin.Context, userInput v1dto.RegisterInput)
 	}
 
 	if exists {
-		return utils.NewError(string(utils.ErrCodeConflict), "User existing.")
+		return utils.NewError(string(utils.ErrCodeConflict), "Tài khoản đã tồn tại!")
 	}
 	
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(userInput.Password), bcrypt.DefaultCost)
@@ -251,4 +253,82 @@ func (as *authService) Register(ctx *gin.Context, userInput v1dto.RegisterInput)
 	}
 
 	return nil
+}
+
+func (as *authService) Oauth2Login(provider string) (string, error) {
+	var url string
+	switch provider {
+	case "google":
+		urlLogin, state, err := as.oauth2Service.GoogleLogin()
+		if err != nil {
+			return "", err
+		}
+		key := "state:" + state
+		if err := as.cache.Set(key, state, 5 * time.Minute); err != nil {
+			return "", err
+		}
+
+		url = urlLogin
+	default:
+		
+	}
+	
+	return url, nil
+}
+
+func (as *authService) Oauth2CallBack(provider, code, state, err string) (string, string, int, error) {
+	var StateCode string
+	if err != "" {
+		return "", "", 0, utils.NewError(string(utils.ErrCodeBadRequest), err)
+	}
+
+	key := "state:" + state
+	if err := as.cache.Get(key, StateCode); err != nil {
+		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Mã xác nhận không hợp lệ!")
+	}
+
+	switch provider {
+	case "google":
+		userOauth, err := as.oauth2Service.GoogleCallback(code)
+		if err != nil {
+			return "", "", 0, err
+		}
+
+		userOauth.Email = utils.NormailizeString(userOauth.Email)
+
+		user, existed, err := as.userRepo.FindExistByEmail(userOauth.Email)
+		if !existed {
+			provider := "google"
+			uuidUser := uuid.New()
+			userModel := v1dto.Oauth2DTOToModel(uuidUser, provider, userOauth)
+
+			if err := as.userRepo.Create(userModel); err != nil {
+				return "", "", 0, utils.WrapError(string(utils.ErrCodeInternal), "Failed to store user.", err)
+			}
+
+			user = userModel
+		}
+
+		accessToken, err := as.tokenService.GenerateAccessToken(user)
+		if err != nil {
+			return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create access token", err)
+		}
+
+		refreshToken, err := as.tokenService.GenerateRefreshToken(user)
+		if err != nil {
+			return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create refresh token", err)
+		}
+
+		if err := as.tokenService.StoreRefreshToken(refreshToken); err != nil {
+			return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Lỗi hệ thống vui lòng đăng nhập lại.", err)
+		}
+
+		as.cache.Clear(key)
+		return accessToken, refreshToken.Token, int(auth.AccessTokenTTL.Seconds()), nil
+
+	default:
+		
+	}
+	
+	return "", "", 0, nil
 }

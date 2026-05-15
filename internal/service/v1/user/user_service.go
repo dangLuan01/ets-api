@@ -65,7 +65,7 @@ func (us *userService) CreateUser(user models.User) (models.User, error) {
 		)
 	}
 	user.UUID = uuid.New()
-	hashPassword, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(*user.PasswordHash), bcrypt.DefaultCost)
 	if err != nil {
 
 		return models.User{}, utils.WrapError(
@@ -74,7 +74,8 @@ func (us *userService) CreateUser(user models.User) (models.User, error) {
 			err,
 		)
 	}
-	user.PasswordHash = string(hashPassword)
+	passStr := string(hashPassword)
+	user.PasswordHash = &passStr
 	if err := us.repo.Create(user); err != nil {
 
 		return models.User{}, utils.WrapError(
@@ -103,14 +104,15 @@ func (us *userService) UpdateUser(uuid uuid.UUID, user models.User) (models.User
 	currencyUser.UserName = user.UserName
 	currencyUser.Email = user.Email
 
-	if user.PasswordHash != "" {
-		hashPassword, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
+	if user.PasswordHash != nil {
+		hashPassword, err := bcrypt.GenerateFromPassword([]byte(*user.PasswordHash), bcrypt.DefaultCost)
 		if err != nil {
 			return models.User{}, utils.WrapError(string(utils.ErrCodeInternal), "Faile hash pass", err)
 		}
-		currencyUser.PasswordHash = string(hashPassword)
-		
+ 		passStr := string(hashPassword)
+		currencyUser.PasswordHash = &passStr
 	}
+	
 	if user.Role != 0 {
 		currencyUser.Role = user.Role
 	}

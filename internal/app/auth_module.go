@@ -14,10 +14,10 @@ type AuthModule struct {
 	routes routes.Route
 }
 
-func NewAuthModule(ctx *ModuleContext, tokenService auth.TokenService, cacheService cache.RedisCacheService) *AuthModule {
+func NewAuthModule(ctx *ModuleContext, tokenService auth.TokenService, oauth2Service auth.Oauth2Service, cacheService cache.RedisCacheService) *AuthModule {
 
 	userRepo 	:= repository.NewSqlUserRepository(ctx.DB)
-	authService := v1service.NewAuthService(userRepo, tokenService, cacheService)
+	authService := v1service.NewAuthService(userRepo, tokenService, oauth2Service, cacheService)
 	authHandler := v1handler.NewAuthHandler(authService) 
 	authRoutes 	:= v1routes.NewAuthRoutes(authHandler)
 

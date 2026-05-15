@@ -41,12 +41,13 @@ func (ur *SqlUserRepository) FindAll() ([]models.User, error){
 
 func (ur *SqlUserRepository) FindBYUUID(uuid string) (models.User, error) {
 	ds := ur.db.From(goqu.T("users")).
-	Where(	
+	Where(
 		goqu.C("uuid").Eq(uuid),
 	).
 	Select(
 		goqu.I("username"),
 		goqu.I("email"),
+		goqu.I("avatar"),
 		goqu.I("target"),
 	)
 	
