@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/dangLuan01/ets-api/internal/utils"
@@ -640,7 +638,15 @@ func (er *SqlExamRepository) FindExamsByFilter(params v1dto.FilterExamParams) ([
 
 	// ===== Search =====
 	if params.Search != nil && *params.Search != "" {
-		ds = ds.Where(goqu.I("e.title").ILike(fmt.Sprintf("%%%s%%", *params.Search)))
+		//ds = ds.Where(goqu.I("e.title").ILike(fmt.Sprintf("%%s%%", *params.Search)))
+		ds = ds.Where(
+			goqu.L(
+				"MATCH(e.title) AGAINST(? IN NATURAL LANGUAGE MODE)",
+				params.Search,
+			),
+		)
+	} else {
+		ds = ds.Order(goqu.I("e.updated_at").Desc())
 	}
 
 	// ===== Category filter (AND logic) =====
@@ -671,12 +677,9 @@ func (er *SqlExamRepository) FindExamsByFilter(params v1dto.FilterExamParams) ([
 			goqu.I("e.total_question"),
 			goqu.I("e.thumbnail"),
 			goqu.I("e.updated_at"),
-		).
-		Order(goqu.I("e.updated_at").Desc()).
-		Offset((uint(params.Page) - 1) * uint(params.Limit)).
-		Limit(uint(params.Limit))
-
-	if err := dataDs.ScanStructs(&exams); err != nil {
+		)
+	
+	if err := dataDs.Offset((uint(params.Page) - 1) * uint(params.Limit)).Limit(uint(params.Limit)).ScanStructs(&exams); err != nil {
 		return nil, 0, err
 	}
 
@@ -685,7 +688,13 @@ func (er *SqlExamRepository) FindExamsByFilter(params v1dto.FilterExamParams) ([
 		From(goqu.T(TABLE_EXAM).As("e"))
 
 	if params.Search != nil && *params.Search != "" {
-		countDs = countDs.Where(goqu.I("e.title").ILike(fmt.Sprintf("%%%s%%", *params.Search)))
+		//countDs = countDs.Where(goqu.I("e.title").ILike(fmt.Sprintf("%%%s%%", *params.Search)))
+		countDs = countDs.Where(
+			goqu.L(
+				"MATCH(e.title) AGAINST(? IN NATURAL LANGUAGE MODE)",
+				params.Search,
+			),
+		)
 	}
 
 	if len(params.CategoryId) > 0 {
