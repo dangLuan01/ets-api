@@ -45,10 +45,12 @@ func (ur *SqlUserRepository) FindBYUUID(uuid string) (models.User, error) {
 		goqu.C("uuid").Eq(uuid),
 	).
 	Select(
-		goqu.I("username"),
-		goqu.I("email"),
-		goqu.I("avatar"),
-		goqu.I("target"),
+		goqu.C("uuid"),
+		goqu.C("username"),
+		goqu.C("email"),
+		goqu.C("avatar"),
+		goqu.C("target"),
+		goqu.C("role"),
 	)
 	
 	var user models.User

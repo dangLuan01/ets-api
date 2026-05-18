@@ -43,8 +43,10 @@ var (
 )
 
 const (
-	AccessTokenTTL 	= 24 * time.Hour
-	RefreshTokenTTL = 3 * 24 * time.Hour
+	// AccessTokenTTL 	= 24 * time.Hour
+	// RefreshTokenTTL = 3 * 24 * time.Hour
+	AccessTokenTTL 	= 2 * time.Minute
+	RefreshTokenTTL = 3 * time.Minute
 )
 
 func NewJWTService(cache cache.RedisCacheService) TokenService {
