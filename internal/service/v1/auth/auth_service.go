@@ -191,7 +191,7 @@ func (as *authService) RefreshToken(ctx *gin.Context, refreshTokenString string)
 	if err != nil {
 		return "","", 0, utils.NewError(string(utils.ErrCodeUnauthorized),"Refresh token is invalid or revoked.")
 	}
-
+	
 	user, err := as.userRepo.FindBYUUID(token.UserUUID.String())
 	if err != nil {
 		return "","", 0, utils.NewError(string(utils.ErrCodeUnauthorized),"User not found.")
