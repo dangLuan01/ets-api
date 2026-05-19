@@ -18,6 +18,6 @@ type TokenService interface {
 }
 
 type Oauth2Service interface {
-	GoogleLogin() (string, string, error)
-	GoogleCallback(code string) (models.GoogleUser, error) 
+	OAuth2Login(provider string) (string, string, error)
+	OAuth2Callback(provider, code string) (models.User, error) 
 }

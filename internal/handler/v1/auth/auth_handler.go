@@ -12,7 +12,7 @@ import (
 )
 
 type Oauth2LoginParams struct {
-	Provider string `uri:"provider" binding:"required,oneof=google apple"`
+	Provider string `uri:"provider" binding:"required,oneof=google facebook-dev"`
 }
 
 type Oauth2CallBackParams struct {

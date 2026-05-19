@@ -23,3 +23,14 @@ type GoogleUser struct {
 	Picture			string 		`json:"picture"`
 	Email 			string 		`json:"email"`
 }
+
+type FacebookUser struct {
+	Id 				string 		`json:"id"`
+	Name 			string 		`json:"name"`	
+	Email 			string 		`json:"email"`
+	Picture			struct {
+		Data struct {
+			Url string `json:"url"`
+		} `json:"data"`
+	} 	`json:"picture"`
+}

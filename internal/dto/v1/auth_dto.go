@@ -51,14 +51,14 @@ func RegisterDTOToModel(uuid uuid.UUID, user RegisterInput) models.User {
 	}
 }
 
-func Oauth2DTOToModel(uuid uuid.UUID, provider string, user models.GoogleUser) models.User {
+func Oauth2DTOToModel(uuid uuid.UUID, provider string, user models.User) models.User {
 	return models.User{
 		UUID: uuid,
-		UserName: user.Name,
+		UserName: user.UserName,
 		Email: user.Email,
-		Avatar: &user.Picture,
+		Avatar: user.Avatar,
 		Provider: &provider,
-		OpenID: &user.Sub,
+		OpenID: user.OpenID,
 		Target: 990,
 		Role: 2,
 		Status: 1,
