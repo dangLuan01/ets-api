@@ -11,9 +11,23 @@ import (
 )
 
 func RegisterCustomValidation(v *validator.Validate) {
-	var slugRegex = regexp.MustCompile(`^[a-z0-9]+(?:[-.][a-z0-9]+)*$`)
+	var (
+		slugRegex 	= regexp.MustCompile(`^[a-z0-9]+(?:[-.][a-z0-9]+)*$`)
+		lowercase 	= regexp.MustCompile(`[a-z]`)
+		uppercase 	= regexp.MustCompile(`[A-Z]`)
+		number    	= regexp.MustCompile(`[0-9]`)
+		special   	= regexp.MustCompile(`[^A-Za-z0-9]`)
+	)
+
 	v.RegisterValidation("slug", func(fl validator.FieldLevel) bool {
 		return slugRegex.MatchString(fl.Field().String())
+	})
+
+	v.RegisterValidation("password", func(fl validator.FieldLevel) bool {
+		return lowercase.MatchString(fl.Field().String()) &&
+			uppercase.MatchString(fl.Field().String()) &&
+			number.MatchString(fl.Field().String()) &&
+			special.MatchString(fl.Field().String())
 	})
 
 	v.RegisterValidation("minInt", func(fl validator.FieldLevel) bool {

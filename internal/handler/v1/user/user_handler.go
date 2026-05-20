@@ -43,17 +43,18 @@ func (uh *UserHandler) GetAllUser(ctx *gin.Context)  {
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully" ,v1dto.MapUsersDTO(users))
 	
 }
+
 func (uh *UserHandler) GetUserByUUID(ctx *gin.Context)  {
 	user, err := uh.service.GetUserByUUID(ctx)
 
 	if err != nil {
-
 		utils.ResponseError(ctx, err)
 		return
 	}
 	
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully", v1dto.MapUserDTO(user))
 }
+
 func (uh *UserHandler) CreateUser(ctx *gin.Context) {
 
 	var input v1dto.CreateUserInput
@@ -75,38 +76,27 @@ func (uh *UserHandler) CreateUser(ctx *gin.Context) {
 
 	utils.ResponseSuccess(ctx, http.StatusCreated, "Successfully", v1dto.MapUserDTO(createUser))
 }
-func (uh *UserHandler) UpdateUser(ctx *gin.Context)  {
-	var param GetUserByUUIDParam
-	err := ctx.ShouldBindUri(&param)
-	if err != nil {
 
+func (uh *UserHandler) UpdateUser(ctx *gin.Context)  {
+	var params v1dto.UpdateUserInput
+	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return 
 	}
 
-	var input v1dto.UpdateUserInput
-	if err := ctx.ShouldBindJSON(&input); err != nil {
-
-		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
-
-		return
-	}
-
-	user := input.MapUpdateInputToModel()
-
-	updateUser, err := uh.service.UpdateUser(param.Uuid, user)
-	if err != nil {
+	if err := uh.service.UpdateUser(ctx, params); err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
 
-	utils.ResponseSuccess(ctx, http.StatusOK ,"Successfully", updateUser)
+	utils.ResponseStatus(ctx, http.StatusOK)
 }
+
 func (uh *UserHandler) DeleteUser(ctx *gin.Context)  {
 	var param GetUserByUUIDParam
+
 	err := ctx.ShouldBindUri(&param)
 	if err != nil {
-
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return 
 	}
@@ -118,19 +108,19 @@ func (uh *UserHandler) DeleteUser(ctx *gin.Context)  {
 	utils.ResponseStatus(ctx, http.StatusNoContent)
 }
 
-func (uh *UserHandler) ChangePassword(ctx *gin.Context) {
-	var params v1dto.ChangerPasswordParams
+func (uh *UserHandler) UpdatePassword(ctx *gin.Context) {
+	var params v1dto.UpdatePasswordInput
 	if err := ctx.ShouldBindBodyWithJSON(&params); err != nil {
 		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
 		return
 	}
 
-	if err := uh.service.ChangePassword(ctx, params); err != nil {
+	if err := uh.service.UpdatePassword(ctx, params); err != nil {
 		utils.ResponseError(ctx, err)
 		return
 	}
 
-	utils.ResponseStatus(ctx, http.StatusNoContent)
+	utils.ResponseStatus(ctx, http.StatusOK)
 }
 
 func (uh *UserHandler) GetAttemptByUserUUID(ctx *gin.Context) {

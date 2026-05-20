@@ -24,7 +24,7 @@ type RefreshTokenInput struct {
 type RegisterInput struct {
 	UserName 		string 	`json:"username" binding:"required,max=50"`
 	Email 	 		string 	`json:"email" binding:"required,email,max=50"`
-	Password 		string 	`json:"password" binding:"required,min=8"`
+	Password 		string 	`json:"password" binding:"required,password,min=8"`
 	Target 			int 	`json:"target" binding:"required,min=10,max=990"`
 	Token			string	`json:"token" binding:"required"`
 }
@@ -57,7 +57,7 @@ func Oauth2DTOToModel(uuid uuid.UUID, provider string, user models.User) models.
 		UserName: user.UserName,
 		Email: user.Email,
 		Avatar: user.Avatar,
-		Provider: &provider,
+		Provider: provider,
 		OpenID: user.OpenID,
 		Target: 990,
 		Role: 2,

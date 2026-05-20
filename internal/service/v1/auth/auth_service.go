@@ -1,6 +1,7 @@
 package v1service
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -113,22 +114,22 @@ func (as *authService) Login(ctx *gin.Context, params v1dto.LoginInput) (string,
 
 	if err != nil {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Sai email hoặc mật khẩu!")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeInternal), "Lỗi hệ thống vui lòng thử lại!")
 	}
 
 	if !existed {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Sai email hoặc mật khẩu!.")
+		return "", "", 0, utils.WrapError(string(utils.ErrCodeUnauthorized), "password", fmt.Errorf("Sai email hoặc mật khẩu!"))
 	}
 
 	if user.Status != 1 {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Tài khoản của bạn đã bị cấm!.")
+		return "", "", 0, utils.WrapError(string(utils.ErrCodeUnauthorized), "password", fmt.Errorf("Sai email hoặc mật khẩu!"))
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(params.Password)); err != nil {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Sai email hoặc mật khẩu!")
+		return "", "", 0, utils.WrapError(string(utils.ErrCodeUnauthorized), "password", fmt.Errorf("Sai email hoặc mật khẩu!"))
 	}
 
 	accessToken, err := as.tokenService.GenerateAccessToken(user)
@@ -235,7 +236,7 @@ func (as *authService) Register(ctx *gin.Context, userInput v1dto.RegisterInput)
 	}
 
 	if exists {
-		return utils.NewError(string(utils.ErrCodeConflict), "Tài khoản đã tồn tại!")
+		return utils.WrapError(string(utils.ErrCodeUnauthorized), "email", fmt.Errorf("Tài khoản đã tồn tại!"))
 	}
 	
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(userInput.Password), bcrypt.DefaultCost)

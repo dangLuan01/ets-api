@@ -6,32 +6,34 @@ import (
 )
 
 type UserDTO struct {
-	UserName   		string 		`json:"username"`
-	Email  			string 		`json:"email"`
-	Avatar			*string		`json:"avatar"`
-	Target			int			`json:"target"`
+	UserName   	string 		`json:"username"`
+	Email  		string 		`json:"email"`
+	Avatar		*string		`json:"avatar"`
+	Target		int			`json:"target"`
+	ExamDate	*string		`json:"exam_date"`
+	HasPassword bool		`json:"has_password"`
 }
 
 type CreateUserInput struct {
 	UUID   		uuid.UUID 	`json:"uuid"`
 	Name     	string 		`json:"name" binding:"required"`
 	Email    	string 		`json:"email" binding:"required,email"`
-	Password 	string 		`json:"password" binding:"required,min=8"`
+	Password 	string 		`json:"password" binding:"required,password,min=8"`
 	Status   	int8   		`json:"status" binding:"required,oneof=1 2"`
 	Role    	int8   		`json:"role" binding:"required,oneof=1 2"`
 }
 
 type UpdateUserInput struct {
-	UUID   uuid.UUID 	`json:"uuid"`
-	Name     string 	`json:"name" binding:"required"`
-	Email    string 	`json:"email" binding:"required,email"`
-	Password string 	`json:"password" binding:"omitempty,min=8"`
-	Status   int8   	`json:"status" binding:"omitempty,oneof=1 2"`
-	Role    int8   	`json:"role" binding:"omitempty,oneof=1 2"`
+	Name     	string 		`json:"name" binding:"required"`
+	Target		int			`json:"target" binding:"required,minInt=1,maxInt=990"`
+	ExamDate	*string		`json:"exam_date" binding:"omitempty"`
 }
 
-type ChangerPasswordParams struct {
-	Password string `json:"password" binding:"required,min=8"`
+type UpdatePasswordInput struct {
+	HasPassword 	bool 	`json:"has_password" binding:"omitempty"`
+	CurrentPassword string 	`json:"current_password" binding:"omitempty"`
+	NewPassword 	string 	`json:"new_password" binding:"required,password,min=8"`
+	ConfirmPassword string 	`json:"confirm_password" binding:"required"`
 }
 
 type UserPayload struct {
@@ -56,22 +58,20 @@ func (input * CreateUserInput) MapCreateInputToModel() models.User {
 	}
 }
 
-func (input * UpdateUserInput) MapUpdateInputToModel() models.User {
-	return models.User{
-		UserName: input.Name,
-		Email: input.Email,
-		PasswordHash: &input.Password,
-		Status: input.Status,
-		Role: input.Role,
-	}
-}
-
 func MapUserDTO(user models.User) *UserDTO {
+	hasPassword := false
+
+	if user.PasswordHash != nil {
+		hasPassword = true	
+	}
+
 	return &UserDTO{
 		UserName: user.UserName,
 		Email: user.Email,
 		Avatar: user.Avatar,
-		Target: user.Target,		
+		Target: user.Target,
+		ExamDate: user.ExamDate,
+		HasPassword: hasPassword,
 	}
 }
 

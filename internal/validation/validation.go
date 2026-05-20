@@ -46,6 +46,8 @@ func HandlerValidationErrors(err error) gin.H {
 				errors[fieldPath] = fmt.Sprintf("%s must be smaller %s", fieldPath, e.Param())
 			case "slug":
 				errors[fieldPath] = fmt.Sprintf("%s is invalid slug", fieldPath)
+			case "password":
+				errors[fieldPath] = fmt.Sprintf("%s phải có ít nhất 1 chữ thường, hoa, số và ký tự đặt biệt", "Mật khẩu")
 			case "required":
 				errors[fieldPath] = fmt.Sprintf("%s is required", fieldPath)
 			case "min":
@@ -69,8 +71,8 @@ func HandlerValidationErrors(err error) gin.H {
 			case "maxfile":
 				errors[fieldPath] = fmt.Sprintf("%s must be small %sKB", fieldPath, e.Param())
 			}
-			
 		}
+		
 		return gin.H{"errors": errors}
 	}
 	return gin.H{
