@@ -9,7 +9,7 @@ type UserRepository interface {
 	FindAll() ([]models.User, error)
 	FindBYUUID(uuid string) (models.User, error)
 	Create(user models.User) error
-	Update(uuid uuid.UUID, user models.User) error
+	Update(uuid uuid.UUID, user models.UserUpdate) error
 	Delete(uuid uuid.UUID) error
 	FindExistByEmail(email string) (models.User, bool, error)
 	UpdatePassword(uuid string, password string) error

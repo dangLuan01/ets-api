@@ -2,6 +2,8 @@ package v1service
 
 import (
 	"fmt"
+	"log"
+	"time"
 
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
@@ -87,44 +89,50 @@ func (us *userService) CreateUser(user models.User) (models.User, error) {
 	
 	return user, nil
 }
-func (us *userService) UpdateUser(uuid uuid.UUID, user models.User) (models.User, error) {
-	user.Email = utils.NormailizeString(user.Email)
-	if u, _, err := us.repo.FindExistByEmail(user.Email); err != nil && u.UUID != uuid{
+func (us *userService) UpdateUser(ctx *gin.Context, params v1dto.UpdateUserInput) error {
+	if params.ExamDate != nil {
 		
-		return models.User{}, utils.NewError(
-			string(utils.ErrCodeConflict), 
-			fmt.Sprintf("Email: %v already existed.", u.Email),
-		)
-	}
-	currencyUser, err := us.repo.FindBYUUID(uuid.String())
-	if err != nil {
-		return models.User{}, utils.NewError(string(utils.ErrCodeNotFound), "user not found")
-	}
-	
-	currencyUser.UserName = user.UserName
-	currencyUser.Email = user.Email
-
-	if user.PasswordHash != nil {
-		hashPassword, err := bcrypt.GenerateFromPassword([]byte(*user.PasswordHash), bcrypt.DefaultCost)
+		date, err := time.Parse("2006-01-02", *params.ExamDate)
 		if err != nil {
-			return models.User{}, utils.WrapError(string(utils.ErrCodeInternal), "Faile hash pass", err)
+			return utils.WrapError(
+				string(utils.ErrCodeBadRequest),
+				"exam_date",
+				fmt.Errorf("Ngày không đúng định dạng YYYY-MM-DD"),
+			)
 		}
- 		passStr := string(hashPassword)
-		currencyUser.PasswordHash = &passStr
+
+		now :=  time.Now()
+		today := time.Date(
+			now.Year(),
+			now.Month(),
+			now.Day(),
+			0,0,0,0,
+			now.Location(),
+		)
+
+		if date.Before(today) {
+			return utils.WrapError(string(utils.ErrCodeBadRequest), "exam_date", fmt.Errorf("Ngày dự kiến không hợp lệ!"))				
+		}
 	}
-	
-	if user.Role != 0 {
-		currencyUser.Role = user.Role
+
+	user, exists := utils.GetUserLogged(ctx)
+	if !exists {
+		return utils.NewError(string(utils.ErrCodeInternal), "Người dùng chưa đăng nhập.")
 	}
-	
-	if user.Status != 0 {
-		currencyUser.Status = user.Status	
+
+	if err := us.repo.Update(
+		user.UserUUID, 
+		models.UserUpdate{
+			UserName: params.Name,
+			Target: params.Target,
+			ExamDate: params.ExamDate,
+		},
+	); err != nil {
+		log.Println(err)
+		return utils.NewError(string(utils.ErrCodeInternal), "Cập nhật thông tin không thành công.")
 	}
-	
-	if err := us.repo.Update(uuid, currencyUser); err != nil {
-		return models.User{}, utils.WrapError(string(utils.ErrCodeInternal), "Faile update user", err)
-	}
-	return currencyUser, nil
+
+	return nil
 }
 
 func (us *userService) DeleteUser(uuid uuid.UUID) error {
@@ -135,20 +143,36 @@ func (us *userService) DeleteUser(uuid uuid.UUID) error {
 	return nil
 }
 
-func (us *userService) ChangePassword(ctx *gin.Context, params v1dto.ChangerPasswordParams) error {
+func (us *userService) UpdatePassword(ctx *gin.Context, params v1dto.UpdatePasswordInput) error {
 	
 	user, exists := utils.GetUserLogged(ctx)
 	if !exists {
-		return utils.NewError(string(utils.ErrCodeInternal), "Failed get user login.")
+		return utils.NewError(string(utils.ErrCodeBadRequest), "Người dùng chưa đăng nhập.")
 	}
 
-	hashPassword, err := bcrypt.GenerateFromPassword([]byte(params.Password), bcrypt.DefaultCost)
+	userExist, err := us.repo.FindBYUUID(user.UserUUID.String())
+
+	if err != nil {	
+		return utils.NewError(string(utils.ErrCodeInternal), "Lỗi hệ thống!")
+	}
+
+	if params.HasPassword {
+		if err := bcrypt.CompareHashAndPassword([]byte(*userExist.PasswordHash), []byte(params.CurrentPassword)); err != nil {
+			return utils.WrapError(string(utils.ErrCodeBadRequest), "current_password", fmt.Errorf("Mật khẩu không đúng!"))
+		}
+	}
+	
+	if params.NewPassword != params.ConfirmPassword {
+		return utils.WrapError(string(utils.ErrCodeBadRequest), "confirm_password", fmt.Errorf("Mật khẩu xác nhận không khớp!"))
+	}
+
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(params.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return utils.NewError(string(utils.ErrCodeInternal), "Unable error hash password.")
 	}
 
 	if err := us.repo.UpdatePassword(user.UserUUID.String(), string(hashPassword)); err != nil {
-		return utils.WrapError(string(utils.ErrCodeInternal), "Failed update password", err)
+		return utils.NewError(string(utils.ErrCodeInternal), "Cập nhật mật khẩu thất bại!")
 	}
 
 	return nil

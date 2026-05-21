@@ -11,8 +11,8 @@ type UserService interface {
 	GetAllUser() ([]models.User, error)
 	GetUserByUUID(ctx *gin.Context) (models.User, error)
 	CreateUser(user models.User) (models.User, error)
-	UpdateUser(uuid uuid.UUID, user models.User) (models.User, error)
+	UpdateUser(ctx *gin.Context, params v1dto.UpdateUserInput) error
 	DeleteUser(uuid uuid.UUID) error
-	ChangePassword(ctx *gin.Context, params v1dto.ChangerPasswordParams) error
+	UpdatePassword(ctx *gin.Context, params v1dto.UpdatePasswordInput) error
 	GetAttemptByUserUUID(ctx *gin.Context, params v1dto.GetAttemptByUserUuuidParams) ([]v1dto.UserAttemptDTO, int64, error)
 }

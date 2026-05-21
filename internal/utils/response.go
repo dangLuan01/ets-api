@@ -80,7 +80,7 @@ func ResponseValidator(ctx *gin.Context, data any) {
 func httpStatusFromCode(code ErrorCode) int {
 	switch code {
 	case ErrCodeBadRequest:
-		return http.StatusBadGateway
+		return http.StatusBadRequest
 	case ErrCodeConflict:
 		return http.StatusConflict
 	case ErrCodeNotFound:

@@ -1,6 +1,7 @@
 package v1service
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -113,22 +114,22 @@ func (as *authService) Login(ctx *gin.Context, params v1dto.LoginInput) (string,
 
 	if err != nil {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Sai email hoặc mật khẩu!")
+		return "", "", 0, utils.NewError(string(utils.ErrCodeInternal), "Lỗi hệ thống vui lòng thử lại!")
 	}
 
 	if !existed {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Sai email hoặc mật khẩu!.")
+		return "", "", 0, utils.WrapError(string(utils.ErrCodeUnauthorized), "password", fmt.Errorf("Sai email hoặc mật khẩu!"))
 	}
 
 	if user.Status != 1 {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Tài khoản của bạn đã bị cấm!.")
+		return "", "", 0, utils.WrapError(string(utils.ErrCodeUnauthorized), "password", fmt.Errorf("Sai email hoặc mật khẩu!"))
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(*user.PasswordHash), []byte(params.Password)); err != nil {
 		as.getLoginAttempt(ip)
-		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Sai email hoặc mật khẩu!")
+		return "", "", 0, utils.WrapError(string(utils.ErrCodeUnauthorized), "password", fmt.Errorf("Sai email hoặc mật khẩu!"))
 	}
 
 	accessToken, err := as.tokenService.GenerateAccessToken(user)
@@ -235,7 +236,7 @@ func (as *authService) Register(ctx *gin.Context, userInput v1dto.RegisterInput)
 	}
 
 	if exists {
-		return utils.NewError(string(utils.ErrCodeConflict), "Tài khoản đã tồn tại!")
+		return utils.WrapError(string(utils.ErrCodeUnauthorized), "email", fmt.Errorf("Tài khoản đã tồn tại!"))
 	}
 	
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(userInput.Password), bcrypt.DefaultCost)
@@ -256,30 +257,23 @@ func (as *authService) Register(ctx *gin.Context, userInput v1dto.RegisterInput)
 }
 
 func (as *authService) Oauth2Login(provider string) (string, error) {
-	var url string
-	switch provider {
-	case "google":
-		urlLogin, state, err := as.oauth2Service.GoogleLogin()
-		if err != nil {
-			return "", err
-		}
-		key := "state:" + state
-		if err := as.cache.Set(key, state, 5 * time.Minute); err != nil {
-			return "", err
-		}
+	urlLogin, state, err := as.oauth2Service.OAuth2Login(provider)
+	if err != nil {
+		return "", err
+	}
 
-		url = urlLogin
-	default:
-		
+	key := "state:" + state
+	if err := as.cache.Set(key, state, 5 * time.Minute); err != nil {
+		return "", err
 	}
 	
-	return url, nil
+	return urlLogin, nil
 }
 
-func (as *authService) Oauth2CallBack(provider, code, state, err string) (string, string, int, error) {
+func (as *authService) Oauth2CallBack(provider, code, state, errors string) (string, string, int, error) {
 	var StateCode string
-	if err != "" {
-		return "", "", 0, utils.NewError(string(utils.ErrCodeBadRequest), err)
+	if errors != "" {
+		return "", "", 0, utils.NewError(string(utils.ErrCodeBadRequest), errors)
 	}
 
 	key := "state:" + state
@@ -287,48 +281,36 @@ func (as *authService) Oauth2CallBack(provider, code, state, err string) (string
 		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Mã xác nhận không hợp lệ!")
 	}
 
-	switch provider {
-	case "google":
-		userOauth, err := as.oauth2Service.GoogleCallback(code)
-		if err != nil {
-			return "", "", 0, err
-		}
-
-		userOauth.Email = utils.NormailizeString(userOauth.Email)
-
-		user, existed, err := as.userRepo.FindExistByEmail(userOauth.Email)
-		if !existed {
-			provider := "google"
-			uuidUser := uuid.New()
-			userModel := v1dto.Oauth2DTOToModel(uuidUser, provider, userOauth)
-
-			if err := as.userRepo.Create(userModel); err != nil {
-				return "", "", 0, utils.WrapError(string(utils.ErrCodeInternal), "Failed to store user.", err)
-			}
-
-			user = userModel
-		}
-
-		accessToken, err := as.tokenService.GenerateAccessToken(user)
-		if err != nil {
-			return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create access token", err)
-		}
-
-		refreshToken, err := as.tokenService.GenerateRefreshToken(user)
-		if err != nil {
-			return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create refresh token", err)
-		}
-
-		if err := as.tokenService.StoreRefreshToken(refreshToken); err != nil {
-			return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Lỗi hệ thống vui lòng đăng nhập lại.", err)
-		}
-
-		as.cache.Clear(key)
-		return accessToken, refreshToken.Token, int(auth.AccessTokenTTL.Seconds()), nil
-
-	default:
-		
+	userOauth, err := as.oauth2Service.OAuth2Callback(provider, code)
+	if err != nil {
+		return "", "", 0, err
 	}
-	
-	return "", "", 0, nil
+
+	userOauth.Email = utils.NormailizeString(userOauth.Email)
+	user, existed, err := as.userRepo.FindExistByEmail(userOauth.Email)
+	if !existed {
+		uuidUser := uuid.New()
+		userModel := v1dto.Oauth2DTOToModel(uuidUser, provider, userOauth)
+		if err := as.userRepo.Create(userModel); err != nil {
+			return "", "", 0, utils.WrapError(string(utils.ErrCodeInternal), "Failed to store user.", err)
+		}
+		user = userModel
+	}
+
+	accessToken, err := as.tokenService.GenerateAccessToken(user)
+	if err != nil {
+		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create access token", err)
+	}
+
+	refreshToken, err := as.tokenService.GenerateRefreshToken(user)
+	if err != nil {
+		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create refresh token", err)
+	}
+
+	if err := as.tokenService.StoreRefreshToken(refreshToken); err != nil {
+		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Lỗi hệ thống vui lòng đăng nhập lại.", err)
+	}
+
+	as.cache.Clear(key)
+	return accessToken, refreshToken.Token, int(auth.AccessTokenTTL.Seconds()), nil
 }
