@@ -1,6 +1,7 @@
 package v1service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -16,6 +17,7 @@ import (
 	repositoryQuestion "github.com/dangLuan01/ets-api/internal/repository/question"
 	repositoryUserAttempt "github.com/dangLuan01/ets-api/internal/repository/user_attempt"
 	"github.com/dangLuan01/ets-api/internal/utils"
+	"github.com/dangLuan01/ets-api/pkg/cache"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/gin-gonic/gin"
 	"github.com/xuri/excelize/v2"
@@ -23,6 +25,7 @@ import (
 
 type examService struct {
 	db *goqu.Database
+	cache cache.RedisCacheService
 	repo repositoryExam.ExamRepository
 	repoPartDirection repositoryPartDirection.PartDirectionRepository
 	repoQuestion repositoryQuestion.QuestionRepository
@@ -31,13 +34,15 @@ type examService struct {
 
 func NewExamService(
 	repo repositoryExam.ExamRepository, 
-	DB *goqu.Database, 
+	DB *goqu.Database,
+	cache cache.RedisCacheService,
 	repoPartDirection repositoryPartDirection.PartDirectionRepository, 
 	repoQuestion repositoryQuestion.QuestionRepository,
 	repoAttempt repositoryUserAttempt.UserAttemptRepository) ExamService {
 
 	return &examService{
 		db: DB,
+		cache: cache,
 		repo: repo,
 		repoPartDirection: repoPartDirection,
 		repoQuestion: repoQuestion,
@@ -1078,4 +1083,12 @@ func (es *examService) GetFeaturedExams(params v1dto.ExamFeaturedParams) (v1dto.
 	}
 
 	return result, total, nil
+}
+
+func (es *examService) SetCountExam(ctx context.Context, slug string) error {
+	if err := es.cache.HIncrByOne(ctx, "buffered:exam:clicks", slug); err != nil {
+		return utils.NewError(string(utils.ErrCodeInternal), "Failed set count exam.")
+	}
+
+	return nil
 }

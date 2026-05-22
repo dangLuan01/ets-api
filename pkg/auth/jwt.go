@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
@@ -142,33 +143,33 @@ func (js *JWTService) GenerateRefreshToken(user models.User) (RefreshToken, erro
 	}, nil
 }
 
-func (js *JWTService) StoreRefreshToken(token RefreshToken) error {
+func (js *JWTService) StoreRefreshToken(ctx context.Context, token RefreshToken) error {
 	cacheKey := "refresh_token:" + token.Token
-	return js.cache.Set(cacheKey, token, RefreshTokenTTL)
+	return js.cache.Set(ctx, cacheKey, token, RefreshTokenTTL)
 }
 
-func (js *JWTService) ValidaRefreshToken(token string) (RefreshToken, error) {
+func (js *JWTService) ValidaRefreshToken(ctx context.Context, token string) (RefreshToken, error) {
 	cacheKey := "refresh_token:" + token
 
 	var refreshToken RefreshToken
-	if err := js.cache.Get(cacheKey, &refreshToken); err != nil || refreshToken.Revoked || refreshToken.ExpiresAt.Before(time.Now()) {
+	if err := js.cache.Get(ctx, cacheKey, &refreshToken); err != nil || refreshToken.Revoked || refreshToken.ExpiresAt.Before(time.Now()) {
 		return RefreshToken{}, utils.WrapError(string(utils.ErrCodeInternal), "Cannot get refresh token", err)
 	}
 
 	return refreshToken, nil
 }
 
-func (js *JWTService) RevokeRefreshToken(token string) error {
+func (js *JWTService) RevokeRefreshToken(ctx context.Context, token string) error {
 	cacheKey := "refresh_token:" + token
 
 	var refreshToken RefreshToken
-	if err := js.cache.Get(cacheKey, &refreshToken); err != nil {
+	if err := js.cache.Get(ctx, cacheKey, &refreshToken); err != nil {
 		return utils.WrapError(string(utils.ErrCodeInternal), "Cannot get refresh token", err)
 	}
 
 	refreshToken.Revoked = true
 
-	return js.cache.Set(cacheKey, refreshToken, time.Until(refreshToken.ExpiresAt))
+	return js.cache.Set(ctx, cacheKey, refreshToken, time.Until(refreshToken.ExpiresAt))
 }
 
 func (js *JWTService) ValidTurnstile(token, remoteip string) (*TurnstileResponse, error) {

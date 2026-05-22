@@ -44,7 +44,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		if jti, ok := claims["jti"].(string); ok {
 			key := "blacklist:" + jti
-			exists, err := cacheService.Exits(key)
+			exists, err := cacheService.Exits(ctx.Request.Context(), key)
 			if err == nil && exists {
 				ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 					"error": "Token revoked",
@@ -89,7 +89,7 @@ func OptionalAuthMiddleware() gin.HandlerFunc {
 
 		if jti, ok := claims["jti"].(string); ok {
 			key := "blacklist:" + jti
-			exists, err := cacheService.Exits(key)
+			exists, err := cacheService.Exits(ctx.Request.Context(), key)
 			if err == nil && exists {
 				ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 					"error": "Token revoked",

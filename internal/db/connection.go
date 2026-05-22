@@ -15,10 +15,10 @@ import (
 
 var DB *goqu.Database
 
-func InitDB() error {
+func InitDB(conf *config.Config) error {
 	var err error
 
-	connStr := config.NewConfig().DNS()
+	connStr := conf.DNS()
 	sqlDB, err := sql.Open("mysql", connStr)
     if err != nil {
         log.Fatal(err)
