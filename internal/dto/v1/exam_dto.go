@@ -27,6 +27,7 @@ type UserAnswerInput struct {
 	QuestionId 		int 			`json:"question_id" binding:"required"`
 	SelectedAnswer 	string 			`json:"selected_answer" binding:"required,oneof=A B C D"`
 	TimeSpentSec	int				`json:"time_spent_sec" binding:"required"`
+	AnswerTimeSec	int				`json:"answer_time_sec" binding:"omitempty"`
 }
 
 type QuestionWithSkill struct {

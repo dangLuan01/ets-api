@@ -116,6 +116,7 @@ type UserAnswer struct {
 	AttemptId 		int 					`db:"attempt_id"`
 	QuestionId 		int 					`db:"question_id"`
 	SelectedAnswer 	string 					`db:"selected_answer"`
+	AnswerTimeSec	int						`db:"answer_time_sec"`
 }
 
 type UserAttempt struct {

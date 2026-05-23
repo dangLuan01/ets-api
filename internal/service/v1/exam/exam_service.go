@@ -294,6 +294,7 @@ func (es *examService) UpsertUserAnswer(ctx *gin.Context, params v1dto.UserAnswe
 		AttemptId: params.AttemptId,
 		QuestionId: params.QuestionId,
 		SelectedAnswer: params.SelectedAnswer,
+		AnswerTimeSec: params.AnswerTimeSec,
 	})
 }
 
@@ -556,6 +557,7 @@ func (es *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
         "cert_id":        params.CertificateId,
         "total_question": params.TotalQuestion,
         "total_time":     params.TotalTime,
+		"updated_at":     time.Now().Format(time.RFC3339),
     }
 
     if params.Description != nil {
