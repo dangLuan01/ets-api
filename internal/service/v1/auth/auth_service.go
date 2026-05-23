@@ -1,6 +1,7 @@
 package v1service
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -142,7 +143,7 @@ func (as *authService) Login(ctx *gin.Context, params v1dto.LoginInput) (string,
 		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Lỗi hệ thống vui lòng đăng nhập lại.", err)
 	}
 
-	if err := as.tokenService.StoreRefreshToken(refreshToken); err != nil {
+	if err := as.tokenService.StoreRefreshToken(ctx.Request.Context(), refreshToken); err != nil {
 		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Lỗi hệ thống vui lòng đăng nhập lại.", err)
 	}
 
@@ -171,15 +172,15 @@ func (as *authService) Logout(ctx *gin.Context, refreshTokenString string) error
 		exp := time.Unix(int64(expUnix), 0)
 		key := "blacklist:" + jti
 		ttl := time.Until(exp)
-		as.cache.Set(key,"revoked", ttl)
+		as.cache.Set(ctx.Request.Context(), key,"revoked", ttl)
 	}
 
-	token, err := as.tokenService.ValidaRefreshToken(refreshTokenString)
+	token, err := as.tokenService.ValidaRefreshToken(ctx, refreshTokenString)
 	if err != nil {
 		return utils.NewError(string(utils.ErrCodeUnauthorized),"Refresh token is invalid or revoked.")
 	}
 
-	if err := as.tokenService.RevokeRefreshToken(token.Token); err != nil {
+	if err := as.tokenService.RevokeRefreshToken(ctx.Request.Context(), token.Token); err != nil {
 		return utils.WrapError(string(utils.ErrCodeBadRequest), "Cannot to revoke refresh token", err)
 	}
 
@@ -188,7 +189,7 @@ func (as *authService) Logout(ctx *gin.Context, refreshTokenString string) error
 
 func (as *authService) RefreshToken(ctx *gin.Context, refreshTokenString string) (string, string, int, error) {
 
-	token, err := as.tokenService.ValidaRefreshToken(refreshTokenString)
+	token, err := as.tokenService.ValidaRefreshToken(ctx, refreshTokenString)
 	if err != nil {
 		return "","", 0, utils.NewError(string(utils.ErrCodeUnauthorized),"Refresh token is invalid or revoked.")
 	}
@@ -208,11 +209,11 @@ func (as *authService) RefreshToken(ctx *gin.Context, refreshTokenString string)
 		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create refresh token", err)
 	}
 
-	if err := as.tokenService.RevokeRefreshToken(refreshTokenString); err != nil {
+	if err := as.tokenService.RevokeRefreshToken(ctx.Request.Context(), refreshTokenString); err != nil {
 		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Cannot to revoke refresh token", err)
 	}
 
-	if err := as.tokenService.StoreRefreshToken(refreshToken); err != nil {
+	if err := as.tokenService.StoreRefreshToken(ctx.Request.Context(), refreshToken); err != nil {
 		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Cannot save refresh token", err)
 	}
 
@@ -256,28 +257,28 @@ func (as *authService) Register(ctx *gin.Context, userInput v1dto.RegisterInput)
 	return nil
 }
 
-func (as *authService) Oauth2Login(provider string) (string, error) {
+func (as *authService) Oauth2Login(ctx context.Context, provider string) (string, error) {
 	urlLogin, state, err := as.oauth2Service.OAuth2Login(provider)
 	if err != nil {
 		return "", err
 	}
 
 	key := "state:" + state
-	if err := as.cache.Set(key, state, 5 * time.Minute); err != nil {
+	if err := as.cache.Set(ctx, key, state, 5 * time.Minute); err != nil {
 		return "", err
 	}
 	
 	return urlLogin, nil
 }
 
-func (as *authService) Oauth2CallBack(provider, code, state, errors string) (string, string, int, error) {
+func (as *authService) Oauth2CallBack(ctx context.Context, provider, code, state, errors string) (string, string, int, error) {
 	var StateCode string
 	if errors != "" {
 		return "", "", 0, utils.NewError(string(utils.ErrCodeBadRequest), errors)
 	}
 
 	key := "state:" + state
-	if err := as.cache.Get(key, StateCode); err != nil {
+	if err := as.cache.Get(ctx, key, StateCode); err != nil {
 		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Mã xác nhận không hợp lệ!")
 	}
 
@@ -307,10 +308,10 @@ func (as *authService) Oauth2CallBack(provider, code, state, errors string) (str
 		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Unable to create refresh token", err)
 	}
 
-	if err := as.tokenService.StoreRefreshToken(refreshToken); err != nil {
+	if err := as.tokenService.StoreRefreshToken(ctx, refreshToken); err != nil {
 		return "", "", 0, utils.WrapError(string(utils.ErrCodeBadRequest), "Lỗi hệ thống vui lòng đăng nhập lại.", err)
 	}
 
-	as.cache.Clear(key)
+	as.cache.Clear(ctx, key)
 	return accessToken, refreshToken.Token, int(auth.AccessTokenTTL.Seconds()), nil
 }

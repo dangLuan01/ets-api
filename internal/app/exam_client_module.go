@@ -9,18 +9,19 @@ import (
 	"github.com/dangLuan01/ets-api/internal/routes"
 	v1routes "github.com/dangLuan01/ets-api/internal/routes/v1/client"
 	v1service "github.com/dangLuan01/ets-api/internal/service/v1/exam"
+	"github.com/dangLuan01/ets-api/pkg/cache"
 )
 
 type ExamClientModule struct {
 	routes routes.Route
 }
 
-func NewExamClientModule(ctx *ModuleContext) *ExamClientModule {
+func NewExamClientModule(ctx *ModuleContext, cacheService cache.RedisCacheService) *ExamClientModule {
 	partDirectionRepo 	:= repositoryPartDirection.NewSqlPartDirectionRepository(ctx.DB)
 	questionRepository 	:= repositoryQuestion.NewSqlQuestionRepository(ctx.DB)
 	examRepo 			:= repositoryExam.NewSqlExamRepository(ctx.DB)
 	userAttemptRepo 	:= repositoryUserAttempt.NewSqlUserAttemptRepository(ctx.DB)
-	examService 		:= v1service.NewExamService(examRepo, ctx.DB, partDirectionRepo, questionRepository, userAttemptRepo)
+	examService 		:= v1service.NewExamService(examRepo, ctx.DB, cacheService, partDirectionRepo, questionRepository, userAttemptRepo)
 	examHandler 		:= v1handler.NewExamHandler(examService)
 	examRoutes 			:= v1routes.NewExamRoutes(examHandler)
 

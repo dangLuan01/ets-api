@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"log"
+
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/dangLuan01/ets-api/internal/utils"
@@ -444,7 +446,7 @@ func (rt *SqlExamRepository) GetExamById(examId int) (models.ExamModel, error) {
 }
 
 func (rt *SqlExamRepository) UpdateExam(tx *goqu.TxDatabase, examId int, data goqu.Record) error {
-
+	log.Println(data)
     // UPDATE exams
     _, err := tx.From(TABLE_EXAM).Update().Set(data).
         Where(goqu.C("id").Eq(examId)).Executor().Exec()
@@ -645,8 +647,15 @@ func (er *SqlExamRepository) FindExamsByFilter(params v1dto.FilterExamParams) ([
 				params.Search,
 			),
 		)
-	} else {
-		ds = ds.Order(goqu.I("e.updated_at").Desc())
+	}
+
+	if params.Sort != "" {
+		switch params.Sort {
+		case "updated_at":
+			ds = ds.Order(goqu.I("e.updated_at").Desc())
+		case "view":
+			ds = ds.Order(goqu.I("e.count").Desc())
+		}
 	}
 
 	// ===== Category filter (AND logic) =====
@@ -699,6 +708,15 @@ func (er *SqlExamRepository) FindExamsByFilter(params v1dto.FilterExamParams) ([
 
 	if len(params.CategoryId) > 0 {
 		countDs = countDs.Where(goqu.I("e.id").In(sub))
+	}
+
+	if params.Sort !=  "" {
+		switch params.Sort {
+		case "updated_at":
+			countDs = countDs.Order(goqu.I("e.updated_at").Desc())
+		case "view":
+			countDs = countDs.Order(goqu.I("e.count").Desc())
+		}
 	}
 
 	var total int64

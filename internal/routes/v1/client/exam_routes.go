@@ -27,5 +27,6 @@ func (tr *ExamRoutes) Register(r *gin.RouterGroup) {
 		exam.GET("/filter-structure", tr.handler.GetFilterStructure)
 		exam.GET("/filter", tr.handler.FilterExam)
 		exam.GET("featured", tr.handler.GetFeatured)
+		exam.POST(":slug/count", tr.handler.SetCountExam)
 	}
 }

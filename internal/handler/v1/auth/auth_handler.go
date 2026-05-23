@@ -114,7 +114,7 @@ func (ah *AuthHandler) Oauth2Login(ctx *gin.Context) {
 		return
 	}
 
-	url, err := ah.authService.Oauth2Login(params.Provider)
+	url, err := ah.authService.Oauth2Login(ctx, params.Provider)
 	if err != nil {
 		utils.ResponseError(ctx, err)
 		return
@@ -149,7 +149,14 @@ func (ah *AuthHandler) Oauth2CallBack(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, expiresIn, err := ah.authService.Oauth2CallBack(paramProvider.Provider, paramCallBack.Code, paramCallBack.State, paramCallBack.Error);
+	accessToken, refreshToken, expiresIn, err := ah.authService.Oauth2CallBack(
+		ctx, 
+		paramProvider.Provider, 
+		paramCallBack.Code, 
+		paramCallBack.State, 
+		paramCallBack.Error,
+	);
+	
 	if err != nil {
 		frontendURL := fmt.Sprintf(
 			"%s/oauth/error?message=%v",

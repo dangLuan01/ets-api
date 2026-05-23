@@ -44,7 +44,7 @@ func NewApplication(cfg *config.Config) (*Application, error) {
 	
 	r := gin.Default()
 	
-	if err := db.InitDB(); err != nil {
+	if err := db.InitDB(cfg); err != nil {
 		log.Fatalf("⛔ Unable to connect to sql")
 	}
 
@@ -81,8 +81,8 @@ func NewApplication(cfg *config.Config) (*Application, error) {
 	modules := []Module{
 		NewAuthModule(ctx, tokenService, oauth2Service, cacheRedisService),
 		NewUserModule(ctx),
-		NewExamAdminModule(ctx),
-		NewExamClientModule(ctx),
+		NewExamAdminModule(ctx, cacheRedisService),
+		NewExamClientModule(ctx, cacheRedisService),
 		NewCertificateModule(ctx),
 		NewSkillModule(ctx),
 		NewPartMasterModule(ctx),

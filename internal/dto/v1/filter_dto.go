@@ -13,6 +13,7 @@ type FilterExamParams struct {
 	CategoryId	[]int	`form:"category_id" binding:"omitempty"`
 	Page		int32	`form:"page" binding:"required,min=1"`
 	Limit		int32	`form:"limit" binding:"required,max=50"`
+	Sort 		string	`form:"sort" binding:"omitempty,oneof=all updated_at view"`
 }
 
 func (m *FilterStructure) GetID() int {

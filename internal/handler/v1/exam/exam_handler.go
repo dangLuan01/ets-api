@@ -369,3 +369,18 @@ func (eh *ExamHandler) FilterExam(ctx *gin.Context) {
 
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", utils.NewPaginationResponse(params.Page, params.Limit, totalRecords, exams))
 }
+
+func (eh *ExamHandler) SetCountExam(ctx *gin.Context) {
+	var params GetSlugExamParams
+	if err := ctx.ShouldBindUri(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	if err := eh.service.SetCountExam(ctx, params.Slug); err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseStatus(ctx, http.StatusOK)
+}
