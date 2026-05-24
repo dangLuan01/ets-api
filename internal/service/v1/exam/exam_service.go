@@ -557,7 +557,7 @@ func (es *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
         "cert_id":        params.CertificateId,
         "total_question": params.TotalQuestion,
         "total_time":     params.TotalTime,
-		"updated_at":     time.Now().Format(time.RFC3339),
+		"updated_at":     time.Now(),
     }
 
     if params.Description != nil {
