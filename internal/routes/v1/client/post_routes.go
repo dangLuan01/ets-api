@@ -22,5 +22,6 @@ func (pr *PostRoutes) Register(r *gin.RouterGroup) {
 		post.GET("/:slug", pr.handler.FindPostBySlug)
 		post.GET("/tag/:slug", pr.handler.FindPostByTagSlug)
 		post.GET("/sitemap", pr.handler.GetAllPostSiteMap)
+		
 	}
 }
