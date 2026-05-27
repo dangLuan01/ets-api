@@ -2,7 +2,7 @@ name: CI/CD for Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "production" ]
 
 jobs:
   build-test-deploy:
