@@ -767,3 +767,32 @@ func (er *SqlExamRepository) FindFeaturedExams(params v1dto.ExamFeaturedParams) 
 	
 	return exams, totalRecords, nil
 }
+
+func (er *SqlExamRepository) FindAllExamSiteMap(page, limit int) ([]models.ExamSiteMap, error) {
+	var exams []models.ExamSiteMap
+	ds := er.db.From(goqu.T(TABLE_EXAM).As("e")).
+		Join(goqu.T(TABLE_CERTIFICATE).As("c"), goqu.On(
+			goqu.I("c.id").Eq(goqu.I("e.cert_id")),
+		)).
+		Select(
+			goqu.I("c.slug").As("cert_slug"),
+			goqu.I("e.exam_type"),
+			goqu.I("e.slug"),
+			goqu.I("e.updated_at"),
+		)
+
+	if err := ds.Offset((uint(page) - 1) * uint(limit)).Limit(uint(limit)).ScanStructs(&exams); err != nil {
+		return nil, err
+	}
+
+	return exams, nil
+}
+
+func (er *SqlExamRepository) CountAllExams() (int64, error) {
+	totals, err := er.db.From(goqu.T(TABLE_EXAM)).Count()
+	if err != nil {
+		return 0, err
+	}
+
+	return totals, nil
+}

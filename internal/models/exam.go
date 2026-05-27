@@ -156,3 +156,10 @@ type TargetExamMapping struct {
 	PartId 			int						`db:"part_id"`
 	OrderIndex 		int 					`db:"order_index"`
 }
+
+type ExamSiteMap struct {
+	CertSlug		string					`json:"cert_slug" db:"cert_slug"`
+	ExamType 		string 					`json:"exam_type" db:"exam_type"`
+	Slug 			string 					`json:"slug" db:"slug"`
+	UpdatedAt 		string 					`json:"updated_at" db:"updated_at"`
+}

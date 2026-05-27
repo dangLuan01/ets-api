@@ -1,0 +1,28 @@
+services:
+  api:
+    build:
+      dockerfile: Dockerfile.prod
+    container_name: api_app_ets_prod
+    env_file: .env
+    expose:
+      - "8083"
+    environment:
+      - VIRTUAL_HOST=api.toeicviet.com
+      - LETSENCRYPT_HOST=api.toeicviet.com
+      - LETSENCRYPT_EMAIL=ml2673572@gmail.com
+      - VIRTUAL_PORT=8083
+    networks:
+      - app-network
+    restart: unless-stopped
+  worker:
+    build:
+      dockerfile: Dockerfile.worker
+    container_name: worker_app_ets_prod
+    env_file: .env
+    networks:
+      - app-network
+    restart: unless-stopped
+networks:
+  app-network:
+    external: true
+    name: app-network

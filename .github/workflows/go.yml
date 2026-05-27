@@ -32,12 +32,30 @@ jobs:
         port: 22
         script: |
           echo "🔄 Pulling latest code..."
-          cd ${{ secrets.VPS_CLIENT_PATH }}
+
+          if [ "${{ github.ref_name }}" = "production" ]; then
+            APP_PATH=${{ secrets.VPS_PROD_PATH }}
+            COMPOSE_FILE=docker-compose.prod.yml
+            BRANCH=production
+          else
+            APP_PATH=${{ secrets.VPS_STAGING_PATH }}
+            COMPOSE_FILE=docker-compose.staging.yml
+            BRANCH=main
+          fi
+
+          cd $APP_PATH
+
+          echo "📂 Using branch: $BRANCH"
+          echo "🐳 Using compose file: $COMPOSE_FILE"
+
           git reset --hard
-          git pull origin main
+          git pull origin $BRANCH
+
           echo "🐳 Restarting Docker containers..."
-          docker compose build             # build local image từ Dockerfile
-          docker compose up -d --remove-orphans
+          docker compose -f $COMPOSE_FILE down
+          docker compose -f $COMPOSE_FILE build --no-cache
+          docker compose -f $COMPOSE_FILE up -d --remove-orphans
+
           echo "🧹 Cleaning up Docker cache and old images..."
           docker builder prune -af
           docker image prune -f

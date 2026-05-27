@@ -181,3 +181,13 @@ func (ch *PostHandler) FindPostByTagSlug(ctx *gin.Context) {
 
 	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", paginationResponse)
 }
+
+func (ch *PostHandler) GetAllPostSiteMap(ctx *gin.Context) {
+	posts, err := ch.service.GetAllPostSiteMap()
+	if err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", posts)
+}
