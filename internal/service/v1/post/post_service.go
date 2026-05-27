@@ -130,3 +130,7 @@ func (ps *postService) FindPostBySlug(slug string) (v1dto.PostDetailDTO, error) 
 func (ps *postService) FindPostByTagSlug(slug string, page, limit int32) ([]v1dto.PostDTO, int64, error) {
 	return ps.repo.FindPostByTagSlug(slug, page, limit)
 }
+
+func (ps *postService) GetAllPostSiteMap() ([]models.PostSiteMap, error) {
+	return ps.repo.FindAllPostSiteMap()
+}

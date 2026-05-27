@@ -1094,3 +1094,20 @@ func (es *examService) SetCountExam(ctx context.Context, slug string) error {
 
 	return nil
 }
+
+
+func (es *examService) GetAllExamSiteMap(page, limit int) ([]models.ExamSiteMap, error) {
+	if page <= 0 {
+		page = 1
+	}
+
+	if limit <= 0 {
+		limit = 1000
+	}
+
+	return es.repo.FindAllExamSiteMap(page, limit)
+}
+
+func (es *examService) GetCountExamSiteMap() (int64, error) {
+	return es.repo.CountAllExams()
+}

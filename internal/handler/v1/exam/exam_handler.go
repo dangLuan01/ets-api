@@ -10,22 +10,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ExamHandler struct {
-	service v1service.ExamService
-}
+type (
+	ExamHandler struct {
+		service v1service.ExamService
+	}
 
-type GetIdExamParams struct {
-	Id int `uri:"id" binding:"required"`
-}
+	GetIdExamParams struct {
+		Id int `uri:"id" binding:"required"`
+	}
 
-type GetSlugExamParams struct {
-	Slug string `uri:"slug" binding:"required"`
-}
+	 GetSlugExamParams struct {
+		Slug string `uri:"slug" binding:"required"`
+	}
 
-type GetExamPartParams struct {
-	ExamId int `uri:"id" binding:"required"`
-	PartId int `uri:"part_id" binding:"required"`
-}
+	GetExamPartParams struct {
+		ExamId int `uri:"id" binding:"required"`
+		PartId int `uri:"part_id" binding:"required"`
+	}
+
+	GetAllExamSiteMapParams struct {
+		Page int `form:"page" binding:"omitempty,min=1"`
+		Limit int `form:"limit" binding:"omitempty,min=1,max=1000"`
+	}
+)
+
+
 
 func NewExamHandler(service v1service.ExamService) *ExamHandler {
 	return &ExamHandler {
@@ -383,4 +392,30 @@ func (eh *ExamHandler) SetCountExam(ctx *gin.Context) {
 	}
 
 	utils.ResponseStatus(ctx, http.StatusOK)
+}
+
+func (eh *ExamHandler) GetAllExamSiteMap(ctx *gin.Context) {
+	var params GetAllExamSiteMapParams
+	if err := ctx.ShouldBindQuery(&params); err != nil {
+		utils.ResponseValidator(ctx, validation.HandlerValidationErrors(err))
+		return
+	}
+
+	exams, err := eh.service.GetAllExamSiteMap(params.Page, params.Limit);
+	if  err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", exams)
+}
+
+func (eh *ExamHandler) GetCountExamSiteMap(ctx *gin.Context) {
+	totals, err := eh.service.GetCountExamSiteMap()
+	if  err != nil {
+		utils.ResponseError(ctx, err)
+		return
+	}
+
+	utils.ResponseSuccess(ctx, http.StatusOK, "Successfully.", totals)
 }

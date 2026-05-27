@@ -7,8 +7,8 @@ services:
     expose:
       - "8082"
     environment:
-      - VIRTUAL_HOST=api.vidhub.io.vn
-      - LETSENCRYPT_HOST=api.vidhub.io.vn
+      - VIRTUAL_HOST=staging-api.toeicviet.com
+      - LETSENCRYPT_HOST=staging-api.toeicviet.com
       - LETSENCRYPT_EMAIL=ml2673572@gmail.com
       - VIRTUAL_PORT=8082
     networks:

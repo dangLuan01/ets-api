@@ -11,3 +11,8 @@ type Post struct {
 	Status 			int  	`json:"status" db:"status"`
 	Tags			[]int	`json:"tags" db:"-"`
 }
+
+type PostSiteMap struct {
+	Slug 			string  `json:"slug" db:"slug"`
+	UpdatedAt 		string  `json:"updated_at" db:"updated_at"`
+}

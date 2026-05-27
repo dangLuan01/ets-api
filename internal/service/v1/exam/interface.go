@@ -20,6 +20,8 @@ type ExamService interface {
 	FilterExam(params v1dto.FilterExamParams) ([]v1dto.ExamFilterDTO, int64, error)
 	GetFeaturedExams(params v1dto.ExamFeaturedParams) (v1dto.FeaturedDTO, int64, error)
 	SetCountExam(ctx context.Context, slug string) error
+	GetAllExamSiteMap(page, limit int) ([]models.ExamSiteMap, error)
+	GetCountExamSiteMap() (int64, error)
 
 	// --- SERVICE ADMIN (CRUD EXAM) ---
 	GetAllExams(params v1dto.GetAllExamParams) ([]models.ExamModel, int64, error)

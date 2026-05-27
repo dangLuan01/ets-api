@@ -538,3 +538,18 @@ func (cr *SqlPostRepository) FindPostByTagSlug(slug string, page, limit int32) (
 
 	return posts, totalRecords, nil
 }
+
+func (cr *SqlPostRepository) FindAllPostSiteMap() ([]models.PostSiteMap, error) {
+	var posts []models.PostSiteMap
+	ds := cr.db.From(TABLE_POST).
+		Select(
+			goqu.C("slug"),
+			goqu.C("updated_at"),
+		)
+
+	if err := ds.ScanStructs(&posts); err != nil {
+		return nil, err
+	}
+
+	return posts, nil
+}

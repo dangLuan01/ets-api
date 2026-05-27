@@ -82,7 +82,8 @@ func (m *mockExamRepo) UpdateQuestionGroup(params v1dto.UpdateQuestionGroupInput
 func (m *mockExamRepo) FindFilterStructure() ([]*v1dto.FilterStructure, error)
 func (m *mockExamRepo) FindExamsByFilter(params v1dto.FilterExamParams) ([]v1dto.ExamFilterDTO, int64, error)
 func (m *mockExamRepo) FindFeaturedExams(params v1dto.ExamFeaturedParams) ([]v1dto.ExamFeaturedRaw, int64, error)
-
+func (m *mockExamRepo) FindAllExamSiteMap(page, limit int) ([]models.ExamSiteMap, error)
+func (m *mockExamRepo) CountAllExams() (int64, error)
 func TestCalculateScoreExam_Success(t *testing.T) {
     repo := &mockExamRepo{}
     service := &examService{repo: repo}
