@@ -1,8 +1,8 @@
 services:
   api:
     build:
-      dockerfile: Dockerfile.api
-    container_name: api_app_ets
+      dockerfile: Dockerfile.staging
+    container_name: api_app_ets_staging
     env_file: .env
     expose:
       - "8082"
@@ -17,7 +17,7 @@ services:
   worker:
     build:
       dockerfile: Dockerfile.worker
-    container_name: worker_app_ets
+    container_name: worker_app_ets_staging
     env_file: .env
     networks:
       - app-network
