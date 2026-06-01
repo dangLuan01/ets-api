@@ -20,7 +20,7 @@ func NewRedisCacheService(rdb *redis.Client) RedisCacheService {
 
 func (cs *redisCacheService) Get(ctx context.Context, key string, dest any) error {
 	data, err := cs.rdb.Get(ctx, key).Bytes()
-
+	
 	if err != nil {
 		return err
 	}
