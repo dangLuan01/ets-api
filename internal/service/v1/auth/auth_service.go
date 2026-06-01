@@ -272,13 +272,13 @@ func (as *authService) Oauth2Login(ctx context.Context, provider string) (string
 }
 
 func (as *authService) Oauth2CallBack(ctx context.Context, provider, code, state, errors string) (string, string, int, error) {
-	var StateCode string
+	var stateCode string
 	if errors != "" {
 		return "", "", 0, utils.NewError(string(utils.ErrCodeBadRequest), errors)
 	}
 
 	key := "state:" + state
-	if err := as.cache.Get(ctx, key, StateCode); err != nil {
+	if err := as.cache.Get(ctx, key, &stateCode); err != nil {
 		return "", "", 0, utils.NewError(string(utils.ErrCodeUnauthorized), "Mã xác nhận không hợp lệ!")
 	}
 
