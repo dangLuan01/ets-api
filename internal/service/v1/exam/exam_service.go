@@ -975,6 +975,7 @@ func (es *examService) ImportExamQuestionFromExcel(ctx *gin.Context, params v1dt
 				OptionC: &optionC,
 				OptionD: &optionD,
 				CorrectAnswer: correctAnswer,
+				Explanation: &explanation,
 				SubOrder: orderNo,
 			}
 
