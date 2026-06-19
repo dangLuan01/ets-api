@@ -13,6 +13,7 @@ type ExamModel struct {
 	Description 	*string 				`json:"description" sdb:"description"`
 	Thumbnail 		*string 				`json:"thumbnail" db:"thumbnail"`
 	AudioFullUrl 	*string					`json:"audio_full_url" db:"audio_full_url"`
+	Speed			float32					`json:"speed" db:"speed"`
 	Status 			int 					`json:"status" db:"status"`
 	CreatedAt 		string 					`json:"created_at" db:"created_at"`
 }
