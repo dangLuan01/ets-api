@@ -50,6 +50,7 @@ func (rt *SqlExamRepository) FindExamBySlug(examSlug string) (models.Exam, error
 		goqu.I("e.description"),
 		goqu.I("e.thumbnail"),
 		goqu.I("e.audio_full_url"),
+		goqu.I("e.speed"),
 		goqu.I("e.status"),
 		goqu.I("e.created_at"),
 		goqu.I("s.code").As("cert_code"),
