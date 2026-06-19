@@ -569,6 +569,9 @@ func (es *examService) UpdateExam(params v1dto.UpdateExamInputParams) error {
     if params.AudioFullUrl != nil {
         updateData["audio_full_url"] = params.AudioFullUrl
     }
+	if params.Speed != nil {
+        updateData["speed"] = params.Speed
+    }
     if params.Status != nil {
         updateData["status"] = params.Status
     }
