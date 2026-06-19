@@ -58,8 +58,9 @@ type CreateExamInputParams struct {
 	TotalTime 		int 					`json:"total_time" db:"total_time" binding:"required"`
 	Description 	*string 				`json:"description" db:"description" binding:"omitempty"`
 	Thumbnail 		*string 				`json:"thumbnail" db:"thumbnail" binding:"omitempty"`
-	CategoryIds 		[]int 				`json:"category_ids" db:"-" binding:"required"`
+	CategoryIds 	[]int 					`json:"category_ids" db:"-" binding:"required"`
 	AudioFullUrl 	*string					`json:"audio_full_url" db:"audio_full_url" binding:"omitempty"`
+	Speed			*float32				`json:"speed" db:"speed" binding:"omitempty"`
 }
 
 type UpdateExamInputParams struct {
@@ -76,6 +77,7 @@ type UpdateExamInputParams struct {
 	CategoryIds 	[]int 					`json:"category_ids" db:"-"`
 	AudioFullUrl 	*string					`json:"audio_full_url" db:"audio_full_url"`
 	Status 			*int 					`json:"status" db:"status" binding:"required,oneof=0 1"`
+	Speed			*float32				`json:"speed" db:"speed"`
 	Target			*Target					`json:"target" db:"-"`
 }
 

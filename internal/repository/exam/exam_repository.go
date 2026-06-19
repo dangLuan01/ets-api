@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"log"
-
 	v1dto "github.com/dangLuan01/ets-api/internal/dto/v1"
 	"github.com/dangLuan01/ets-api/internal/models"
 	"github.com/dangLuan01/ets-api/internal/utils"
@@ -52,6 +50,7 @@ func (rt *SqlExamRepository) FindExamBySlug(examSlug string) (models.Exam, error
 		goqu.I("e.description"),
 		goqu.I("e.thumbnail"),
 		goqu.I("e.audio_full_url"),
+		goqu.I("e.speed"),
 		goqu.I("e.status"),
 		goqu.I("e.created_at"),
 		goqu.I("s.code").As("cert_code"),
@@ -446,7 +445,6 @@ func (rt *SqlExamRepository) GetExamById(examId int) (models.ExamModel, error) {
 }
 
 func (rt *SqlExamRepository) UpdateExam(tx *goqu.TxDatabase, examId int, data goqu.Record) error {
-	log.Println(data)
     // UPDATE exams
     _, err := tx.From(TABLE_EXAM).Update().Set(data).
         Where(goqu.C("id").Eq(examId)).Executor().Exec()
