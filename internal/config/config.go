@@ -86,7 +86,7 @@ func NewConfig() *Config {
 			User: utils.GetEnv("DB_USER",""),
 			Password: utils.GetEnv("DB_PASSWORD",""),
 			DBName: utils.GetEnv("DB_DBNAME",""),
-			SSLMode: utils.GetEnv("DB_SSLMODE","disable"),
+			SSLMode: utils.GetEnv("DB_SSLMODE","false"),
 		},
 		MailProviderType: mailProviderType,
 		MailProviderConfig: mailProviderConfig,
@@ -95,7 +95,7 @@ func NewConfig() *Config {
 }
 
 func (c *Config) DNS() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
-    	c.DB.User, c.DB.Password, c.DB.Host, c.DB.Port, c.DB.DBName,
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&tls=%s",
+    	c.DB.User, c.DB.Password, c.DB.Host, c.DB.Port, c.DB.DBName, c.DB.SSLMode,
 	)
 }
